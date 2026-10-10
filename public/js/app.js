@@ -38,7 +38,10 @@ class SplitPayApp {
       walletBalance: 2450.00,
       postpaidBalance: 10000.00,
       scratchReward: 48,
-      scratchCardRevealed: false
+      scratchCardRevealed: false,
+      customerBanks: [],
+      activeCustomerBank: null,
+      selectedBankToLink: null
     };
 
     this.qrScanner = null;
@@ -114,6 +117,7 @@ class SplitPayApp {
     this.renderAddedItems();
     this.calculateAndRender();
     this.setPhoneBrand('gpay');
+    this.loadCustomerLinkedBanks();
   }
 
   cacheDom() {
@@ -256,6 +260,32 @@ class SplitPayApp {
       phoneAvatarLetter: document.getElementById('phoneAvatarLetter'),
       phoneVerifiedBadge: document.getElementById('phoneVerifiedBadge'),
       soundboxPersonaSelect: document.getElementById('soundboxPersonaSelect'),
+
+      // Bank Account Linking & Balance Checker
+      phoneBankName: document.getElementById('phoneBankName'),
+      phoneBankIcon: document.getElementById('phoneBankIcon'),
+      linkedBanksDrawer: document.getElementById('linkedBanksDrawer'),
+      phoneLinkedBanksList: document.getElementById('phoneLinkedBanksList'),
+      linkBankModal: document.getElementById('linkBankModal'),
+      linkBankStep1: document.getElementById('linkBankStep1'),
+      linkBankStep2: document.getElementById('linkBankStep2'),
+      linkBankStep3: document.getElementById('linkBankStep3'),
+      popularBanksGrid: document.getElementById('popularBanksGrid'),
+      bankSearchInput: document.getElementById('bankSearchInput'),
+      foundBankName: document.getElementById('foundBankName'),
+      foundAccountMask: document.getElementById('foundAccountMask'),
+      foundHolderName: document.getElementById('foundHolderName'),
+      linkMpinInput: document.getElementById('linkMpinInput'),
+      initialBalanceInput: document.getElementById('initialBalanceInput'),
+      setPrimaryCheckbox: document.getElementById('setPrimaryCheckbox'),
+      checkBalanceModal: document.getElementById('checkBalanceModal'),
+      checkBalancePinView: document.getElementById('checkBalancePinView'),
+      checkBalanceResultView: document.getElementById('checkBalanceResultView'),
+      checkBalBankTitle: document.getElementById('checkBalBankTitle'),
+      checkBalMpinInput: document.getElementById('checkBalMpinInput'),
+      checkBalAmountDisplay: document.getElementById('checkBalAmountDisplay'),
+      checkBalBankSubtitle: document.getElementById('checkBalBankSubtitle'),
+      checkBalTimestamp: document.getElementById('checkBalTimestamp'),
 
       // Gateway Configuration & Pipeline
       gatewayConfigModal: document.getElementById('gatewayConfigModal'),
@@ -915,6 +945,30 @@ class SplitPayApp {
         this.state.smartPlan.splits,
         this.state.smartPlan.totalAmount
       );
+
+      // Debit connected customer bank account in SQLite DB
+      const payingBank = this.state.activeCustomerBank;
+      if (payingBank) {
+        fetch('/api/v1/banks/pay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountId: payingBank.id,
+            amount: this.state.smartPlan.totalAmount,
+            masterTxnId: this.state.smartPlan.masterTxnId,
+            mpin: this.state.enteredPin || '123456'
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            payingBank.balance = res.newBalance;
+            this.renderActiveCustomerBankUI();
+            this.renderLinkedBanksDrawerList();
+          }
+        })
+        .catch(() => {});
+      }
 
       // Trigger Floating NPCI Simulated Bank Credit Alerts & record audit
       const plan = this.state.smartPlan;
@@ -2357,6 +2411,323 @@ class SplitPayApp {
     if (this.dom.phoneSuccessOverlay) {
       this.dom.phoneSuccessOverlay.style.display = 'none';
     }
+  }
+
+  // ================= BANK ACCOUNT LINKING & CONNECTIVITY CONTROLLER =================
+  loadCustomerLinkedBanks() {
+    fetch('/api/v1/banks/linked')
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.accounts && res.accounts.length > 0) {
+          this.state.customerBanks = res.accounts;
+          const currentId = this.state.activeCustomerBank ? this.state.activeCustomerBank.id : null;
+          this.state.activeCustomerBank = res.accounts.find(a => a.id === currentId) ||
+                                          res.accounts.find(a => a.is_primary) ||
+                                          res.accounts[0];
+          this.renderActiveCustomerBankUI();
+          this.renderLinkedBanksDrawerList();
+        }
+      })
+      .catch(err => {
+        console.warn('Could not load linked banks:', err);
+      });
+  }
+
+  renderActiveCustomerBankUI() {
+    const bank = this.state.activeCustomerBank;
+    if (!bank) return;
+
+    if (this.dom.phoneBankName) {
+      this.dom.phoneBankName.textContent = `${bank.bank_name} •••• ${bank.account_mask.slice(-4)}`;
+    }
+    if (this.dom.phoneBankIcon) {
+      this.dom.phoneBankIcon.textContent = bank.bank_code === 'SBI' ? '🏛️' : (bank.bank_code === 'PAYTM' ? '🔵' : '🏦');
+    }
+    if (this.dom.gpayBankPickerSub) {
+      this.dom.gpayBankPickerSub.textContent = `${bank.bank_name} UPI • ${bank.is_primary ? 'Primary A/C' : 'Linked'}`;
+    }
+  }
+
+  renderLinkedBanksDrawerList() {
+    if (!this.dom.phoneLinkedBanksList) return;
+    const currentId = this.state.activeCustomerBank ? this.state.activeCustomerBank.id : null;
+
+    const html = this.state.customerBanks.map(b => {
+      const isSelected = b.id === currentId;
+      const icon = b.bank_code === 'SBI' ? '🏛️' : (b.bank_code === 'PAYTM' ? '🔵' : '🏦');
+      return `
+        <div class="linked-bank-card-item ${isSelected ? 'active' : ''}" onclick="app.selectActivePayingBank('${b.id}')">
+          <div class="linked-bank-left">
+            <span style="font-size: 1.3rem;">${icon}</span>
+            <div>
+              <div class="linked-bank-title">${b.bank_name} <span class="text-mono" style="font-size: 0.72rem; color: #94a3b8;">${b.account_mask}</span></div>
+              <div class="linked-bank-vpa">${b.upi_vpa}</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div class="linked-bank-bal">₹${Number(b.balance).toLocaleString('en-IN')}.00</div>
+            <div class="text-xs" style="color: ${b.is_primary ? '#34d399' : '#64748b'}; font-weight: 700;">
+              ${b.is_primary ? '✓ Primary' : 'Select'}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    this.dom.phoneLinkedBanksList.innerHTML = html;
+  }
+
+  selectActivePayingBank(bankId) {
+    const bank = this.state.customerBanks.find(b => b.id === bankId);
+    if (bank) {
+      this.state.activeCustomerBank = bank;
+      this.renderActiveCustomerBankUI();
+      this.renderLinkedBanksDrawerList();
+      this.closeLinkedBanksDrawer();
+      this.soundbox.playBeep();
+
+      // Update primary on server
+      fetch('/api/v1/banks/set-primary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId: bankId })
+      }).catch(() => {});
+    }
+  }
+
+  toggleLinkedBanksDrawer() {
+    if (!this.dom.linkedBanksDrawer) return;
+    const isHidden = this.dom.linkedBanksDrawer.style.display === 'none' || !this.dom.linkedBanksDrawer.style.display;
+    if (isHidden) {
+      this.dom.linkedBanksDrawer.style.display = 'flex';
+      this.renderLinkedBanksDrawerList();
+      this.soundbox.playBeep();
+    } else {
+      this.closeLinkedBanksDrawer();
+    }
+  }
+
+  closeLinkedBanksDrawer() {
+    if (this.dom.linkedBanksDrawer) {
+      this.dom.linkedBanksDrawer.style.display = 'none';
+    }
+  }
+
+  // ================= LINK BANK ACCOUNT WIZARD =================
+  openLinkBankModal() {
+    this.closeLinkedBanksDrawer();
+    if (!this.dom.linkBankModal) return;
+
+    this.dom.linkBankModal.style.display = 'flex';
+    if (this.dom.linkBankStep1) this.dom.linkBankStep1.style.display = 'block';
+    if (this.dom.linkBankStep2) this.dom.linkBankStep2.style.display = 'none';
+    if (this.dom.linkBankStep3) this.dom.linkBankStep3.style.display = 'none';
+    this.soundbox.playBeep();
+
+    // Fetch popular banks
+    fetch('/api/v1/banks/popular')
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.banks) {
+          this.state._popularBanks = res.banks;
+          this.renderPopularBanksGrid(res.banks);
+        }
+      })
+      .catch(() => {});
+  }
+
+  closeLinkBankModal(e) {
+    if (e && e.target && e.target !== this.dom.linkBankModal && !e.target.classList.contains('modal-close-btn')) return;
+    if (this.dom.linkBankModal) {
+      this.dom.linkBankModal.style.display = 'none';
+    }
+  }
+
+  renderPopularBanksGrid(banks) {
+    if (!this.dom.popularBanksGrid) return;
+    const html = banks.map(b => `
+      <div class="bank-choice-card" onclick="app.startDeviceBinding('${b.code}')">
+        <span class="bank-choice-icon">${b.icon}</span>
+        <div>
+          <div class="bank-choice-name">${b.name}</div>
+          <div class="bank-choice-ifsc">${b.ifscPrefix} ••••</div>
+        </div>
+      </div>
+    `).join('');
+    this.dom.popularBanksGrid.innerHTML = html;
+  }
+
+  filterBankList(query) {
+    if (!this.state._popularBanks) return;
+    const q = (query || '').toLowerCase().trim();
+    const filtered = this.state._popularBanks.filter(b => 
+      b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q)
+    );
+    this.renderPopularBanksGrid(filtered);
+  }
+
+  startDeviceBinding(bankCode) {
+    const bank = (this.state._popularBanks || []).find(b => b.code === bankCode) || {
+      code: bankCode,
+      name: bankCode + ' Bank',
+      ifscPrefix: bankCode + '000'
+    };
+    this.state.selectedBankToLink = bank;
+
+    if (this.dom.linkBankStep1) this.dom.linkBankStep1.style.display = 'none';
+    if (this.dom.linkBankStep2) this.dom.linkBankStep2.style.display = 'block';
+    if (this.dom.linkBankStep3) this.dom.linkBankStep3.style.display = 'none';
+    this.soundbox.playBeep();
+
+    // Reset step styles
+    const s1 = document.getElementById('bindStep1');
+    const s2 = document.getElementById('bindStep2');
+    const s3 = document.getElementById('bindStep3');
+    if (s1) s1.textContent = '✓ Mobile number verified (+91 98765 43210)';
+    if (s2) s2.textContent = '⏳ Connecting to ' + bank.name + ' CBS...';
+    if (s3) s3.textContent = '⏳ Fetching registered bank accounts...';
+
+    // Step 2 timer simulation
+    setTimeout(() => {
+      if (s2) {
+        s2.className = 'bind-step text-success';
+        s2.textContent = '✓ Connected to ' + bank.name + ' Core Banking';
+      }
+      if (s3) {
+        s3.className = 'bind-step text-cyan';
+        s3.textContent = '⏳ Account found! Verifying account holder...';
+      }
+
+      setTimeout(() => {
+        if (s3) {
+          s3.className = 'bind-step text-success';
+          s3.textContent = '✓ 1 Savings Account Found with ' + bank.name;
+        }
+
+        setTimeout(() => {
+          this.showBankLinkStep3(bank);
+        }, 500);
+      }, 700);
+    }, 600);
+  }
+
+  showBankLinkStep3(bank) {
+    if (this.dom.linkBankStep2) this.dom.linkBankStep2.style.display = 'none';
+    if (this.dom.linkBankStep3) this.dom.linkBankStep3.style.display = 'block';
+
+    const randNum = Math.floor(1000 + Math.random() * 9000);
+    this.state._generatedAccountMask = '•••• ' + randNum;
+    this.state._generatedFullNum = '50100' + randNum + Math.floor(10000 + Math.random() * 90000);
+    this.state._generatedIfsc = bank.ifscPrefix + '1234';
+
+    if (this.dom.foundBankName) this.dom.foundBankName.textContent = bank.name;
+    if (this.dom.foundAccountMask) this.dom.foundAccountMask.textContent = 'Savings Account: •••• ' + randNum;
+    if (this.dom.foundHolderName) {
+      this.dom.foundHolderName.innerHTML = `Account Holder: <strong>Satnam Singh</strong> (IFSC: ${this.state._generatedIfsc})`;
+    }
+  }
+
+  handleCompleteLinkBank(e) {
+    if (e) e.preventDefault();
+    const bank = this.state.selectedBankToLink;
+    if (!bank) return;
+
+    const mpin = this.dom.linkMpinInput ? this.dom.linkMpinInput.value.trim() : '123456';
+    const initBal = this.dom.initialBalanceInput ? parseFloat(this.dom.initialBalanceInput.value) || 75000 : 75000;
+    const isPrimary = this.dom.setPrimaryCheckbox ? this.dom.setPrimaryCheckbox.checked : true;
+
+    fetch('/api/v1/banks/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bankCode: bank.code,
+        bankName: bank.name,
+        accountHolder: 'Satnam Singh',
+        accountNum: this.state._generatedFullNum,
+        ifsc: this.state._generatedIfsc,
+        initialBalance: initBal,
+        mpin: mpin,
+        isPrimary: isPrimary
+      })
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) {
+          this.soundbox.playCelebrationSound();
+          this.triggerConfetti();
+          alert(`🎉 Bank Account Linked Successfully!\nBank: ${bank.name}\nAccount: ${this.state._generatedAccountMask}\nAvailable Bal: ₹${initBal.toLocaleString('en-IN')}\nStatus: Ready for 1-Scan Payments!`);
+          this.closeLinkBankModal();
+          this.loadCustomerLinkedBanks();
+        }
+      })
+      .catch(err => {
+        alert('Failed to link bank: ' + err.message);
+      });
+  }
+
+  // ================= CHECK BANK BALANCE MODAL =================
+  openCheckBalanceModal() {
+    if (!this.dom.checkBalanceModal) return;
+    const bank = this.state.activeCustomerBank;
+    if (!bank) return;
+
+    this.dom.checkBalanceModal.style.display = 'flex';
+    if (this.dom.checkBalancePinView) this.dom.checkBalancePinView.style.display = 'block';
+    if (this.dom.checkBalanceResultView) this.dom.checkBalanceResultView.style.display = 'none';
+    if (this.dom.checkBalBankTitle) {
+      this.dom.checkBalBankTitle.textContent = `${bank.bank_name} •••• ${bank.account_mask.slice(-4)}`;
+    }
+    if (this.dom.checkBalMpinInput) {
+      this.dom.checkBalMpinInput.value = '123456';
+      this.dom.checkBalMpinInput.focus();
+    }
+    this.soundbox.playBeep();
+  }
+
+  closeCheckBalanceModal(e) {
+    if (e && e.target && e.target !== this.dom.checkBalanceModal && !e.target.classList.contains('modal-close-btn')) return;
+    if (this.dom.checkBalanceModal) {
+      this.dom.checkBalanceModal.style.display = 'none';
+    }
+  }
+
+  submitCheckBalance() {
+    const bank = this.state.activeCustomerBank;
+    if (!bank) return;
+
+    const mpin = this.dom.checkBalMpinInput ? this.dom.checkBalMpinInput.value.trim() : '123456';
+    fetch('/api/v1/banks/check-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accountId: bank.id,
+        mpin: mpin
+      })
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) {
+          if (this.dom.checkBalancePinView) this.dom.checkBalancePinView.style.display = 'none';
+          if (this.dom.checkBalanceResultView) this.dom.checkBalanceResultView.style.display = 'block';
+          if (this.dom.checkBalAmountDisplay) {
+            this.dom.checkBalAmountDisplay.textContent = `₹${Number(res.balance).toLocaleString('en-IN')}.00`;
+          }
+          if (this.dom.checkBalBankSubtitle) {
+            this.dom.checkBalBankSubtitle.textContent = `${res.bankName} Savings A/C (${res.accountMask})`;
+          }
+          if (this.dom.checkBalTimestamp) {
+            const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            this.dom.checkBalTimestamp.textContent = `As of Today, ${timeStr} • Verified by NPCI UPI`;
+          }
+          bank.balance = res.balance;
+          this.soundbox.playChime();
+        } else {
+          alert('Incorrect UPI PIN. Please try again.');
+        }
+      })
+      .catch(err => {
+        alert('Check balance error: ' + err.message);
+      });
   }
 
   // ================= ENTERPRISE GATEWAY & PIPELINE CONTROLLER =================

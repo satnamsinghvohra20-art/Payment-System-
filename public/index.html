@@ -970,18 +970,51 @@
             </div>
           </div>
 
-          <!-- Standard Bank Account Picker (Shown when in GPay or Standard Mode) -->
+          <!-- Interactive Bank Account Picker & Link Options -->
           <div class="phone-bank-picker" id="gpayBankPicker">
-            <div class="flex-between">
+            <div class="flex-between cursor-pointer" onclick="app.toggleLinkedBanksDrawer()" title="Click to view & switch linked bank accounts">
               <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <span style="font-size: 1.3rem;">🏦</span>
+                <span style="font-size: 1.3rem;" id="phoneBankIcon">🏦</span>
                 <div>
-                  <div class="font-bold text-xs" style="color: #fff;">HDFC Bank •••• 4821</div>
+                  <div class="font-bold text-xs" style="color: #fff; display: flex; align-items: center; gap: 0.35rem;">
+                    <span id="phoneBankName">HDFC Bank •••• 4821</span>
+                    <span style="font-size: 0.65rem; color: #94a3b8;">▾</span>
+                  </div>
                   <div class="text-xs text-muted" id="gpayBankPickerSub">Google Pay UPI • Primary A/C</div>
                 </div>
               </div>
-              <span class="text-success text-xs font-bold">✓ Primary</span>
+              <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <button type="button" class="btn-check-balance" onclick="event.stopPropagation(); app.openCheckBalanceModal()" title="Check Bank Account Balance">
+                  💰 Balance
+                </button>
+                <button type="button" class="btn-link-bank" onclick="event.stopPropagation(); app.openLinkBankModal()" title="Link Another Bank Account">
+                  ➕ Link
+                </button>
+              </div>
             </div>
+          </div>
+
+          <!-- In-Phone Linked Banks Drawer (Slide-Up) -->
+          <div id="linkedBanksDrawer" class="paytm-passbook-drawer" style="display: none;">
+            <div class="passbook-drawer-header flex-between">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.15rem;">🏦</span>
+                <span class="font-bold text-sm" style="color: #fff;">Your Linked Bank Accounts</span>
+              </div>
+              <button class="passbook-close-btn" onclick="app.closeLinkedBanksDrawer()">✕</button>
+            </div>
+
+            <p class="text-xs text-muted" style="margin-bottom: 0.75rem;">
+              Choose which bank to pay from, or link a new account via UPI.
+            </p>
+
+            <div class="linked-banks-list" id="phoneLinkedBanksList">
+              <!-- Dynamically populated from /api/v1/banks/linked -->
+            </div>
+
+            <button class="btn btn-outline btn-full font-bold text-xs" style="margin-top: 0.75rem; border-radius: 999px; border-color: rgba(255,255,255,0.2);" onclick="app.openLinkBankModal()">
+              ➕ Link Another Bank Account
+            </button>
           </div>
 
           <!-- Interactive Action on Phone -->
@@ -1082,6 +1115,135 @@
         <!-- Phone Home Bar -->
         <div class="phone-home-indicator"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= LINK BANK ACCOUNT WIZARD MODAL ================= -->
+  <div id="linkBankModal" class="modal-overlay" style="display: none;" onclick="app.closeLinkBankModal(event)">
+    <div class="modal-content animate-scale-up" style="max-width: 440px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title"><span>🏦</span> Link Bank Account via UPI</h3>
+        <button class="modal-close-btn" onclick="app.closeLinkBankModal()">✕</button>
+      </div>
+
+      <!-- Wizard Step 1: Select Bank -->
+      <div id="linkBankStep1">
+        <p class="text-xs text-muted" style="margin-bottom: 0.85rem;">
+          Select your bank to fetch linked accounts via secure NPCI SMS device binding.
+        </p>
+
+        <!-- Search Bank Input -->
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <input type="text" id="bankSearchInput" class="form-input text-xs" placeholder="🔍 Search bank name or IFSC..." oninput="app.filterBankList(this.value)">
+        </div>
+
+        <!-- Popular Banks Grid -->
+        <div class="popular-banks-grid" id="popularBanksGrid">
+          <!-- Populated from /api/v1/banks/popular -->
+        </div>
+      </div>
+
+      <!-- Wizard Step 2: SMS Device Binding Simulation -->
+      <div id="linkBankStep2" style="display: none; text-align: center; padding: 1.5rem 0.5rem;">
+        <div class="device-bind-spinner animate-pulse" style="font-size: 2.5rem; margin-bottom: 0.5rem;">📶</div>
+        <h4 class="font-bold" style="color: #fff;">Verifying Device & SIM Card</h4>
+        <p class="text-xs text-muted" style="margin: 0.5rem 0 1.25rem;">
+          Sending encrypted SMS from SIM 1 (+91 98765 43210) to authenticate with NPCI UPI servers...
+        </p>
+        <div class="device-bind-steps text-xs text-left" style="background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 0.85rem; border: 1px solid rgba(255,255,255,0.08);">
+          <div class="bind-step text-success" id="bindStep1">✓ Mobile number verified (+91 98765 43210)</div>
+          <div class="bind-step text-cyan" id="bindStep2" style="margin: 0.4rem 0;">⏳ Connecting to Bank CBS (Core Banking)...</div>
+          <div class="bind-step text-muted" id="bindStep3">⏳ Fetching registered bank accounts...</div>
+        </div>
+      </div>
+
+      <!-- Wizard Step 3: Account Found & Set UPI PIN -->
+      <div id="linkBankStep3" style="display: none;">
+        <div class="card" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; margin-bottom: 1rem;">
+          <div class="flex-between">
+            <div>
+              <div class="font-bold text-success" style="font-size: 1rem;" id="foundBankName">Axis Bank</div>
+              <div class="text-xs text-muted text-mono" id="foundAccountMask">Account: •••• 9482</div>
+            </div>
+            <span class="badge badge-success">✓ Account Found</span>
+          </div>
+          <div class="text-xs text-muted" style="margin-top: 0.5rem;" id="foundHolderName">
+            Account Holder: <strong>Satnam Singh</strong> (IFSC: UTIB0001234)
+          </div>
+        </div>
+
+        <form onsubmit="app.handleCompleteLinkBank(event)">
+          <div class="form-group">
+            <label class="form-label" for="linkMpinInput">Set / Confirm 6-Digit UPI MPIN</label>
+            <input type="password" id="linkMpinInput" class="form-input text-mono" maxlength="6" value="123456" placeholder="Enter 6 digits" required>
+            <span class="text-xs text-muted">Used to authorize payments and check balance</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="initialBalanceInput">Simulated Initial Bank Balance (₹)</label>
+            <input type="number" id="initialBalanceInput" class="form-input" value="75000" min="1000" step="5000">
+          </div>
+
+          <div class="form-group">
+            <label class="toggle-switch-label text-xs">
+              <input type="checkbox" id="setPrimaryCheckbox" checked>
+              <span>Set as primary default account for payments</span>
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-outline" onclick="app.closeLinkBankModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary font-bold">✓ Link Bank Account</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= CHECK BANK BALANCE MODAL ================= -->
+  <div id="checkBalanceModal" class="modal-overlay" style="display: none;" onclick="app.closeCheckBalanceModal(event)">
+    <div class="modal-content animate-scale-up" style="max-width: 380px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title"><span>💰</span> Check Bank Balance</h3>
+        <button class="modal-close-btn" onclick="app.closeCheckBalanceModal()">✕</button>
+      </div>
+
+      <!-- State 1: Enter PIN -->
+      <div id="checkBalancePinView">
+        <div class="text-center" style="margin-bottom: 1rem;">
+          <div style="font-size: 2rem;">🏦</div>
+          <div class="font-bold text-sm" style="color: #fff; margin-top: 0.25rem;" id="checkBalBankTitle">HDFC Bank •••• 4821</div>
+          <div class="text-xs text-muted">Enter UPI MPIN to view available balance</div>
+        </div>
+
+        <div class="form-group text-center">
+          <input type="password" id="checkBalMpinInput" class="form-input text-mono text-center" maxlength="6" value="123456" style="font-size: 1.5rem; letter-spacing: 0.3em; width: 180px; margin: 0 auto;" placeholder="••••••">
+          <div class="text-xs text-muted" style="margin-top: 0.35rem;">Default Demo MPIN: 123456</div>
+        </div>
+
+        <button class="btn btn-primary btn-full font-bold" style="margin-top: 0.75rem;" onclick="app.submitCheckBalance()">
+          Verify & View Balance
+        </button>
+      </div>
+
+      <!-- State 2: Balance Result Slip -->
+      <div id="checkBalanceResultView" style="display: none; text-align: center; padding: 0.5rem 0;">
+        <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: var(--success); font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+          ✓
+        </div>
+        <div class="text-xs text-muted font-bold" style="letter-spacing: 0.05em;">AVAILABLE BANK BALANCE</div>
+        <div class="font-bold text-success text-mono" style="font-size: 2.2rem; margin: 0.35rem 0;" id="checkBalAmountDisplay">
+          ₹64,250.00
+        </div>
+        <div class="text-xs text-muted" id="checkBalBankSubtitle">HDFC Bank Savings A/C (•••• 4821)</div>
+        <div class="text-xs text-muted" style="margin-top: 0.5rem; font-size: 0.68rem;" id="checkBalTimestamp">As of Today, 11:45 AM • Verified by NPCI UPI</div>
+
+        <button class="btn btn-outline btn-full font-bold" style="margin-top: 1.25rem; border-radius: 999px;" onclick="app.closeCheckBalanceModal()">
+          Done
+        </button>
+      </div>
+
     </div>
   </div>
 

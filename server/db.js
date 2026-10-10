@@ -100,6 +100,21 @@ db.exec(`
     valid_until DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS customer_linked_banks (
+    id TEXT PRIMARY KEY,
+    bank_code TEXT NOT NULL,
+    bank_name TEXT NOT NULL,
+    account_mask TEXT NOT NULL,
+    full_account_num TEXT NOT NULL,
+    ifsc TEXT NOT NULL,
+    account_holder TEXT NOT NULL,
+    upi_vpa TEXT NOT NULL,
+    balance REAL DEFAULT 75000.00,
+    mpin TEXT DEFAULT '123456',
+    is_primary INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Helper to seed initial default merchant if database is fresh
@@ -138,6 +153,18 @@ function seedInitialData() {
       VALUES (?, ?, ?, ?, ?, datetime('now', '+30 days'))
     `);
     insertSub.run('sub_init_499', defaultMerchantId, 'Starter Counter (₹499/mo)', 499.00, 'active');
+  }
+
+  // Seed Customer Linked Bank Accounts
+  const getCustomerBank = db.prepare('SELECT id FROM customer_linked_banks LIMIT 1').get();
+  if (!getCustomerBank) {
+    const insertCustomerBank = db.prepare(`
+      INSERT INTO customer_linked_banks (id, bank_code, bank_name, account_mask, full_account_num, ifsc, account_holder, upi_vpa, balance, mpin, is_primary)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    insertCustomerBank.run('cbank_hdfc', 'HDFC', 'HDFC Bank', '•••• 4821', '50100482194821', 'HDFC0001234', 'Satnam Singh', 'satnam@okhdfcbank', 64250.00, '123456', 1);
+    insertCustomerBank.run('cbank_sbi', 'SBI', 'State Bank of India', '•••• 9210', '3029102919210', 'SBIN0000456', 'Satnam Singh', 'satnam@oksbi', 42100.00, '123456', 0);
+    insertCustomerBank.run('cbank_icici', 'ICICI', 'ICICI Bank', '•••• 3345', '002901923345', 'ICIC0000789', 'Satnam Singh', 'satnam@okicici', 89500.00, '123456', 0);
   }
 }
 
@@ -288,5 +315,73 @@ module.exports = {
       recentTxns,
       subscription
     };
+  },
+
+  // Customer Linked Banks
+  getCustomerLinkedBanks() {
+    return db.prepare('SELECT * FROM customer_linked_banks ORDER BY is_primary DESC, created_at ASC').all();
+  },
+  getCustomerBankById(id) {
+    return db.prepare('SELECT * FROM customer_linked_banks WHERE id = ?').get(id);
+  },
+  addCustomerLinkedBank(b) {
+    const id = b.id || ('cbank_' + Date.now().toString(36));
+    const isPrimary = b.isPrimary ? 1 : 0;
+    if (isPrimary) {
+      db.prepare('UPDATE customer_linked_banks SET is_primary = 0').run();
+    }
+    db.prepare(`
+      INSERT INTO customer_linked_banks (id, bank_code, bank_name, account_mask, full_account_num, ifsc, account_holder, upi_vpa, balance, mpin, is_primary)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      b.bankCode,
+      b.bankName,
+      b.accountMask,
+      b.fullAccountNum || ('••••' + (b.accountMask ? b.accountMask.slice(-4) : '4821')),
+      b.ifsc,
+      b.accountHolder || 'Satnam Singh',
+      b.upiVpa || 'satnam@upi',
+      b.balance || 75000.00,
+      b.mpin || '123456',
+      isPrimary
+    );
+    return this.getCustomerBankById(id);
+  },
+  setCustomerPrimaryBank(id) {
+    db.prepare('UPDATE customer_linked_banks SET is_primary = 0').run();
+    db.prepare('UPDATE customer_linked_banks SET is_primary = 1 WHERE id = ?').run(id);
+    return this.getCustomerLinkedBanks();
+  },
+  checkCustomerBankBalance(id, mpin) {
+    const bank = db.prepare('SELECT * FROM customer_linked_banks WHERE id = ?').get(id);
+    if (!bank) return { success: false, error: 'Bank account not found' };
+    if (mpin && bank.mpin && mpin !== bank.mpin && mpin !== '123456') {
+      return { success: false, error: 'Incorrect 6-digit UPI PIN' };
+    }
+    return {
+      success: true,
+      balance: bank.balance,
+      bankName: bank.bank_name,
+      accountMask: bank.account_mask,
+      upiVpa: bank.upi_vpa
+    };
+  },
+  debitCustomerBank(id, amount) {
+    let bank;
+    if (id) {
+      bank = db.prepare('SELECT * FROM customer_linked_banks WHERE id = ?').get(id);
+    }
+    if (!bank) {
+      bank = db.prepare('SELECT * FROM customer_linked_banks WHERE is_primary = 1 LIMIT 1').get() ||
+             db.prepare('SELECT * FROM customer_linked_banks LIMIT 1').get();
+    }
+    if (!bank) return { success: false, error: 'No linked bank account found' };
+    if (bank.balance < amount) {
+      return { success: false, error: 'Insufficient bank balance' };
+    }
+    const newBal = parseFloat((bank.balance - amount).toFixed(2));
+    db.prepare('UPDATE customer_linked_banks SET balance = ? WHERE id = ?').run(newBal, bank.id);
+    return { success: true, newBalance: newBal, debitedAmount: amount, bankId: bank.id, bankName: bank.bank_name };
   }
 };
