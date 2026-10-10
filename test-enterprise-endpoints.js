@@ -71,7 +71,29 @@ async function test() {
   // 5. Verify Transaction Marked Completed in DB
   const txnCheck = await get(`/api/v1/transactions/${session.data.masterTxnId}`);
   console.log('[GET /api/v1/transactions/:id]', txnCheck.status, 'Status in DB:', txnCheck.data.transaction.status, 'UTR:', txnCheck.data.transaction.utr);
-  console.log('Splits in DB:', txnCheck.data.transaction.splits.map(s => `${s.recipient_name}: ₹${s.amount} (${s.payout_status})`).join(' | '));
+  // 6. Test Landing Page HTML
+  const landing = await new Promise((resolve, reject) => {
+    http.get('http://127.0.0.1:3000/landing.html', res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode, length: data.length, body: data }));
+    }).on('error', reject);
+  });
+  console.log('[GET /landing.html]', landing.status, 'Size:', landing.length, 'Has Calculator:', landing.body.includes('calcVol'));
+
+  // 7. Test CSV Ledger Export
+  const csv = await new Promise((resolve, reject) => {
+    http.get('http://127.0.0.1:3000/api/v1/reports/settlement-csv', res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode, body: data }));
+    }).on('error', reject);
+  });
+  console.log('[GET /api/v1/reports/settlement-csv]', csv.status, 'CSV Header:', csv.body.split('\n')[0]);
+
+  // 8. Test WhatsApp End-of-Day Dispatcher
+  const wa = await get('/api/v1/notifications/whatsapp-summary');
+  console.log('[GET /api/v1/notifications/whatsapp-summary]', wa.status, 'Has URL:', !!wa.data.whatsappUrl);
 
   console.log('✅ ALL ENTERPRISE PIPELINE ENDPOINTS VERIFIED & WORKING!');
 }

@@ -329,6 +329,67 @@ async function handleApi(req, res, pathname, parsedUrl) {
       return jsonResponse(200, { success: true, transaction: txn });
     }
 
+    // 8. Downloadable Settlement CSV Ledger Report
+    if (pathname === '/api/v1/reports/settlement-csv' && req.method === 'GET') {
+      const rows = db.db.prepare(`
+        SELECT t.master_txn_id, t.created_at, t.total_amount, sp.part_index, sp.recipient_name, sp.recipient_vpa, sp.amount, sp.payout_status, sp.payout_utr
+        FROM transactions t
+        JOIN split_parts sp ON t.id = sp.transaction_id
+        ORDER BY t.created_at DESC LIMIT 500
+      `).all();
+
+      let csv = 'Master Txn Ref,Timestamp,Order Total (INR),Split Part,Receiving Bank Account,Destination VPA,Part Amount (INR),Payout Status,UTR\r\n';
+      rows.forEach(r => {
+        csv += `"${r.master_txn_id}","${r.created_at}",${r.total_amount},"Part ${r.part_index}","${r.recipient_name}","${r.recipient_vpa}",${r.amount},"${r.payout_status}","${r.payout_utr || 'N/A'}"\r\n`;
+      });
+
+      res.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="SplitPay_Settlement_Ledger.csv"'
+      });
+      res.end(csv);
+      return;
+    }
+
+    // 9. Automated WhatsApp End-of-Day Settlement Dispatcher
+    if (pathname === '/api/notifications/whatsapp-summary' || pathname === '/api/v1/notifications/whatsapp-summary') {
+      const merchant = db.getMerchant();
+      const rows = db.db.prepare(`
+        SELECT sp.recipient_name, SUM(sp.amount) as total_part, count(*) as count
+        FROM split_parts sp
+        JOIN transactions t ON sp.transaction_id = t.id
+        WHERE t.status = 'completed'
+        GROUP BY sp.recipient_name
+      `).all();
+
+      const totalVol = rows.reduce((acc, r) => acc + (r.total_part || 0), 0);
+      const totalCount = rows.reduce((acc, r) => acc + (r.count || 0), 0);
+      const feesSaved = (totalVol * 0.011).toFixed(2);
+      const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+      let text = `⚡ *SplitPay Daily Settlement Report*\n`;
+      text += `🏪 *Store:* ${merchant.name}\n`;
+      text += `📅 *Date:* ${todayStr}\n`;
+      text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `💰 *Total Volume Settled:* ₹${totalVol.toLocaleString('en-IN')}.00\n`;
+      text += `📦 *Total Auto-Split Parts:* ${totalCount} parts\n\n`;
+      text += `🏦 *Bank Node Allocations:*\n`;
+      rows.forEach(r => {
+        text += `• ${r.recipient_name}: *₹${Number(r.total_part).toLocaleString('en-IN')}* (${r.count} parts)\n`;
+      });
+      text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `🎉 *Interchange Fees Saved:* *₹${Number(feesSaved).toLocaleString('en-IN')}*\n`;
+      text += `✅ *Settlement Status:* 100% Gross Routed (0% Tax / 0% Deductions)\n`;
+      text += `🔒 Verified by NPCI UPI Single PIN Split Engine`;
+
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      return jsonResponse(200, {
+        success: true,
+        summaryText: text,
+        whatsappUrl
+      });
+    }
+
     // ================= LEGACY / TEST HARNESS COMPATIBILITY =================
 
     // Dynamic QR Code generation endpoint

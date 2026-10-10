@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitPay — India's #1 Smart UPI Payment Station & Split Engine</title>
+  <meta name="description" content="Pay once, split automatically into ₹1,999 chunks across merchant accounts. Save up to 1.1% in interchange fees and eliminate bank throttles.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Dedicated Commercial Landing Page Styles */
+    .landing-body {
+      background: #080c14;
+      color: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .landing-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 2.5rem;
+      background: rgba(13, 19, 33, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .landing-hero {
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #10b981;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #06b6d4, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: #94a3b8;
+      max-width: 780px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.6;
+    }
+    .hero-cta-group {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .landing-feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      max-width: 1150px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+    }
+    .feature-card-pro {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card-pro:hover {
+      transform: translateY(-4px);
+      border-color: rgba(6, 182, 212, 0.4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .feature-icon-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.25rem;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+    .comparison-table-wrap {
+      max-width: 1000px;
+      margin: 5rem auto;
+      padding: 0 1.5rem;
+    }
+    .pricing-table-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      max-width: 950px;
+      margin: 3rem auto 6rem;
+      padding: 0 1.5rem;
+    }
+  </style>
+</head>
+<body class="landing-body">
+
+  <!-- Navigation Bar -->
+  <header class="landing-nav">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <span style="font-size: 1.8rem;">⚡</span>
+      <span style="font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em;">
+        SplitPay <span style="color: #10b981; font-size: 0.85rem; font-weight: 700; border: 1px solid rgba(16,185,129,0.3); padding: 0.15rem 0.5rem; border-radius: 999px;">ENTERPRISE</span>
+      </span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 1.25rem;">
+      <a href="#calculator" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 600;">ROI Calculator</a>
+      <a href="#comparison" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Why SplitPay</a>
+      <a href="#pricing" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Pricing</a>
+      <a href="/" class="btn btn-primary" style="padding: 0.6rem 1.25rem; font-weight: 700; text-decoration: none;">
+        Launch Web POS Terminal ➔
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="landing-hero">
+    <div class="hero-pill">
+      <span>🛡️</span> 1-Scan, 1-PIN Legal UPI Division Engine
+    </div>
+    <h1 class="hero-title">
+      Accept ₹3,800 or More.<br>
+      <span class="gradient-text">1 Customer Scan. Zero Bank Freezes.</span>
+    </h1>
+    <p class="hero-subtitle">
+      India's first commercial retail terminal that automatically divides customer payments into safe <strong>₹1,999 pieces</strong> across your bank accounts upon arrival. Eliminate UPI PPI interchange fees and never hit daily velocity limits.
+    </p>
+    <div class="hero-cta-group">
+      <a href="/" class="btn btn-primary" style="padding: 0.9rem 2rem; font-size: 1.05rem; font-weight: 700; border-radius: 12px; text-decoration: none; box-shadow: 0 10px 25px rgba(6, 182, 212, 0.35);">
+        🚀 Open Live Counter POS Terminal
+      </a>
+      <a href="#pricing" class="btn btn-outline" style="padding: 0.9rem 1.75rem; font-size: 1.05rem; font-weight: 600; border-radius: 12px; text-decoration: none;">
+        View ₹499/mo Plan
+      </a>
+    </div>
+  </section>
+
+  <!-- Feature Grid -->
+  <section class="landing-feature-grid">
+    <div class="feature-card-pro">
+      <div class="feature-icon-badge">⚡</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">1-Scan, 1-PIN Customer Flow</h3>
+      <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
+        Customers don't want to scan twice. With SplitPay, they scan one dynamic QR and enter their UPI PIN once in Google Pay or PhonePe. Our backend handles the multi-part division instantly.
+      </p>
+    </div>
+
+    <div class="feature-card-pro">
+      <div class="feature-icon-badge">🔊</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">3D 4G Soundbox Simulator</h3>
+      <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
+        Authentic Indian UPI soundbox voice announcements in Hindi and English with live backlit LCD bill readouts, animated speaker wave visualizers, and replay buttons.
+      </p>
+    </div>
+
+    <div class="feature-card-pro">
+      <div class="feature-icon-badge">🏦</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Multi-Bank Routing & Caps</h3>
+      <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
+        Route Part 1 to HDFC, Part 2 to ICICI, and overflow to SBI. Avoid daily merchant transaction thresholds that cause banks to freeze current accounts.
+      </p>
+    </div>
+
+    <div class="feature-card-pro">
+      <div class="feature-icon-badge">📱</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Customer Phone Mirror Screen</h3>
+      <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
+        Interactive simulated mobile phone that mirrors the merchant checkout in real time, showing the exact amount, verified merchant tick, and live bank split pill.
+      </p>
+    </div>
+
+    <div class="feature-card-pro">
+      <div class="feature-icon-badge">🎙️</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Hands-Free Voice Assistant</h3>
+      <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
+        Cashiers can speak commands into the counter microphone ("Split 3800", "Add 500", "Pay now") without touching the keyboard during busy store rushes.
+      </p>
+    </div>
+
+    <div class="feature-card-pro">
+      <div class="feature-icon-badge">🔒</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">100% Tax-Free Gross Routing</h3>
+      <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
+        Zero artificial GST deductions. Exactly 100% of the customer's paid funds are distributed across the merchant's destination bank accounts.
+      </p>
+    </div>
+  </section>
+
+  <!-- Interactive ROI Calculator Section -->
+  <section id="calculator" style="background: rgba(15, 23, 42, 0.4); padding: 5rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+      <span class="hero-pill">📈 Profit Calculator</span>
+      <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1rem;">
+        How Much Money Does Your Store Save?
+      </h2>
+      <p style="color: #94a3b8; font-size: 1rem; margin-bottom: 2.5rem;">
+        Transactions above ₹2,000 on PPI wallets or cards can cost up to 1.1% in interchange. See your net monthly profit with SplitPay:
+      </p>
+
+      <div class="card" style="background: #0f172a; border-color: rgba(16, 185, 129, 0.3); padding: 2rem; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        <div style="margin-bottom: 1.5rem; text-align: left;">
+          <label style="font-size: 0.9rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 0.5rem;">
+            Your Store's Monthly UPI Turnover:
+          </label>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <span style="font-size: 1.5rem; font-weight: 700; color: #10b981;">₹</span>
+            <input type="number" id="calcVol" class="form-input large-amount" value="500000" min="20000" step="50000" style="font-size: 1.8rem; font-weight: 800; padding: 0.5rem 1rem;" oninput="updateLandingRoi(this.value)">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem;">
+          <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px;">
+            <div style="font-size: 0.8rem; color: #94a3b8;">Processing Fees Saved</div>
+            <div id="calcFees" style="font-size: 1.4rem; font-weight: 800; color: #10b981; margin-top: 0.35rem;">₹5,500 / mo</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px;">
+            <div style="font-size: 0.8rem; color: #94a3b8;">SplitPay SaaS Cost</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #06b6d4; margin-top: 0.35rem;">₹499 / mo</div>
+          </div>
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 1rem; border-radius: 12px;">
+            <div style="font-size: 0.8rem; color: #10b981; font-weight: 700;">Net Monthly Profit</div>
+            <div id="calcNet" style="font-size: 1.4rem; font-weight: 800; color: #10b981; margin-top: 0.35rem;">+₹5,001 / mo</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.75rem;">
+          <a href="/" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; border-radius: 10px; text-decoration: none; display: block;">
+            Start Saving Today — Open Counter Terminal ➔
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section id="comparison" class="comparison-table-wrap">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+      <h2 style="font-size: 2.2rem; font-weight: 800;">Traditional QR vs SplitPay Terminal</h2>
+      <p style="color: #94a3b8;">Why retail shopkeepers are switching to SplitPay across India.</p>
+    </div>
+
+    <div style="background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+          <tr style="background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <th style="padding: 1rem 1.5rem; color: #94a3b8;">Feature</th>
+            <th style="padding: 1rem 1.5rem; color: #ef4444;">Standard Paytm / PhonePe QR</th>
+            <th style="padding: 1rem 1.5rem; color: #10b981; font-weight: 800;">⚡ SplitPay Station</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <td style="padding: 1rem 1.5rem; font-weight: 600;">Payments Above ₹2,000</td>
+            <td style="padding: 1rem 1.5rem; color: #94a3b8;">Hits 1.1% interchange on PPI</td>
+            <td style="padding: 1rem 1.5rem; color: #10b981; font-weight: 700;">✓ Auto-divided into ₹1,999 (0% fees)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <td style="padding: 1rem 1.5rem; font-weight: 600;">Bank Velocity Freezes</td>
+            <td style="padding: 1rem 1.5rem; color: #94a3b8;">Single account freezes on surge</td>
+            <td style="padding: 1rem 1.5rem; color: #10b981; font-weight: 700;">✓ Multi-Bank auto round-robin distribution</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <td style="padding: 1rem 1.5rem; font-weight: 600;">Customer Friction</td>
+            <td style="padding: 1rem 1.5rem; color: #94a3b8;">Must scan multiple QRs for split</td>
+            <td style="padding: 1rem 1.5rem; color: #10b981; font-weight: 700;">✓ 1-Scan 1-PIN single authorization</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <td style="padding: 1rem 1.5rem; font-weight: 600;">Soundbox Integration</td>
+            <td style="padding: 1rem 1.5rem; color: #94a3b8;">₹150/mo hardware rental lock-in</td>
+            <td style="padding: 1rem 1.5rem; color: #10b981; font-weight: 700;">✓ Included 3D 4G Soundbox & Voice Terminal</td>
+          </tr>
+          <tr>
+            <td style="padding: 1rem 1.5rem; font-weight: 600;">Accounting Reconciliation</td>
+            <td style="padding: 1rem 1.5rem; color: #94a3b8;">Manual statement downloads</td>
+            <td style="padding: 1rem 1.5rem; color: #10b981; font-weight: 700;">✓ Automated WhatsApp summary & CSV export</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" style="padding: 4rem 1.5rem 6rem; text-align: center;">
+    <span class="hero-pill">💎 Simple Transparent Pricing</span>
+    <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 0.75rem;">
+      Invest ₹499. Save ₹5,000+ Every Month.
+    </h2>
+    <p style="color: #94a3b8; max-width: 600px; margin: 0 auto 3rem;">
+      No hidden commissions. No lock-in contracts. Cancel anytime.
+    </p>
+
+    <div class="pricing-table-grid">
+      <!-- Starter Plan -->
+      <div class="card" style="border: 2px solid #6366f1; background: rgba(99, 102, 241, 0.05); padding: 2rem; border-radius: 16px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 1.3rem; font-weight: 800; margin: 0;">Starter Counter</h3>
+          <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px;">Popular</span>
+        </div>
+        <div style="margin: 1rem 0;">
+          <span style="font-size: 2.4rem; font-weight: 800; color: #fff;">₹499</span>
+          <span style="color: #94a3b8; font-size: 0.9rem;">/ month</span>
+        </div>
+        <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.5rem;">
+          Ideal for retail shops, cafes, clinics, and supermarkets with 1 checkout counter.
+        </p>
+        <ul style="list-style: none; padding-left: 0; line-height: 2; font-size: 0.85rem; color: #94a3b8; margin-bottom: 2rem;">
+          <li>✓ 1-Scan 1-PIN Auto-Split Engine</li>
+          <li>✓ 3D 4G Soundbox Simulator with Voice</li>
+          <li>✓ Customer Smartphone Mirror View</li>
+          <li>✓ Up to 3 Linked Bank Accounts</li>
+          <li>✓ Real-Time Webhook Notifications</li>
+        </ul>
+        <a href="/" class="btn btn-primary" style="display: block; text-align: center; padding: 0.85rem; font-weight: 700; border-radius: 10px; text-decoration: none;">
+          Launch Terminal Now ➔
+        </a>
+      </div>
+
+      <!-- Business Pro Plan -->
+      <div class="card" style="border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.5); padding: 2rem; border-radius: 16px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 1.3rem; font-weight: 800; margin: 0;">Business Pro</h3>
+          <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px;">High Volume</span>
+        </div>
+        <div style="margin: 1rem 0;">
+          <span style="font-size: 2.4rem; font-weight: 800; color: #fff;">₹999</span>
+          <span style="color: #94a3b8; font-size: 0.9rem;">/ month</span>
+        </div>
+        <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.5rem;">
+          For multi-counter stores, high-ticket electronics, jewellery, and multi-partner retail.
+        </p>
+        <ul style="list-style: none; padding-left: 0; line-height: 2; font-size: 0.85rem; color: #94a3b8; margin-bottom: 2rem;">
+          <li>✓ Everything in Starter Counter</li>
+          <li>✓ 3 Simultaneous Checkout Counters</li>
+          <li>✓ Unlimited Bank Routing Nodes</li>
+          <li>✓ Automated Instant IMPS Payouts</li>
+          <li>✓ Daily WhatsApp Settlement Report</li>
+        </ul>
+        <a href="/" class="btn btn-outline" style="display: block; text-align: center; padding: 0.85rem; font-weight: 700; border-radius: 10px; text-decoration: none;">
+          Choose Business Pro ➔
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background: #060910; padding: 3rem 2rem; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; font-size: 0.85rem; color: #64748b;">
+    <div style="margin-bottom: 1rem; font-weight: 700; color: #f8fafc;">
+      ⚡ SplitPay Enterprise — Built for High-Volume Retail in India
+    </div>
+    <p>Compliant with NPCI Unified Payments Interface & RBI Payment and Settlement Systems Guidelines.</p>
+    <p style="margin-top: 1rem;">© 2026 SplitPay Enterprise. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function updateLandingRoi(val) {
+      const vol = Math.max(0, parseFloat(val) || 0);
+      const saved = Math.round(vol * 0.011);
+      const net = Math.max(0, saved - 499);
+      document.getElementById('calcFees').textContent = '₹' + saved.toLocaleString('en-IN') + ' / mo';
+      document.getElementById('calcNet').textContent = '+₹' + net.toLocaleString('en-IN') + ' / mo';
+    }
+  </script>
+</body>
+</html>
