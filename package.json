@@ -1,0 +1,27 @@
+{
+  "name": "splitpay-upi-system",
+  "version": "1.0.0",
+  "description": "Smart UPI Payment Splitter - Automatically splits payments into ₹1999 chunks and manages complete settlement",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-big-amount.js"
+  },
+  "keywords": [
+    "upi",
+    "payment",
+    "split-payment",
+    "qr-code",
+    "fintech"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/satnamsinghvohra20-art/Payment-System-.git"
+  },
+  "author": "Satnam Singh Vohra",
+  "license": "MIT",
+  "dependencies": {
+    "html5-qrcode": "^2.3.8",
+    "qrcode": "^1.5.4"
+  }
+}

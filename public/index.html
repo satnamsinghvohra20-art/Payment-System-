@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitPay 1999 — Smart UPI Split Payment Terminal</title>
+  <meta name="description" content="Automatic ₹1999 split payment engine for Indian UPI. Seamlessly divide large payments into ₹1999 chunks and clear the full bill.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">₹</div>
+        <div>
+          <div class="brand-title">
+            SplitPay <span class="brand-badge">1999 Engine</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <nav class="view-tabs">
+        <button class="tab-btn mode-tab active" data-mode="smart">
+          <span>⚡</span> 1-Scan 1-PIN Auto-Split
+        </button>
+        <button class="tab-btn mode-tab" data-mode="customer">
+          <span>📱</span> Sequential Multi-QR
+        </button>
+        <button class="tab-btn mode-tab" data-mode="kiosk">
+          <span>🖥️</span> Merchant Counter POS
+        </button>
+        <button class="tab-btn mode-tab" data-mode="treasury">
+          <span>🏦</span> Treasury & Analytics
+        </button>
+      </nav>
+
+      <!-- Soundbox & Utilities -->
+      <div class="header-controls">
+        <div id="lanBadge" class="brand-badge" style="display:none; text-transform:none;"></div>
+        <button id="togglePhoneMirrorBtn" class="btn btn-secondary font-bold text-xs" style="padding: 0.45rem 0.85rem;" onclick="app.togglePhoneMirror()" title="Open Customer Phone Mirror Screen">
+          📱 Customer Phone
+        </button>
+        <button id="soundToggleBtn" class="icon-btn active" title="UPI Soundbox Audio">
+          🔊
+        </button>
+        <button id="langToggleBtn" class="icon-btn font-bold text-xs" title="Soundbox Language">
+          EN
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-wrapper">
+
+    <!-- Hero Informational Banner -->
+    <section class="hero-banner">
+      <div class="hero-content">
+        <h1>Automatic ₹1,999 Split Payment Station</h1>
+        <p>
+          <strong>The 1-Scan, 1-PIN Vision:</strong> Pay <span class="rule-highlight">₹3,800</span> or more by scanning <span class="rule-highlight">ONE QR</span> and entering your PIN <span class="rule-highlight">ONLY ONCE</span>. The engine automatically divides the payment into safe <span class="rule-highlight">₹1,999 chunks</span> + remaining balance (<span class="rule-highlight">₹1,801</span>) and routes them across accounts!
+        </p>
+      </div>
+      <div class="quick-stats">
+        <div class="stat-chip">
+          <div class="stat-label">Single PIN Flow</div>
+          <div class="stat-val text-cyan">1-Scan 1-PIN</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-label">Max Chunk Cap</div>
+          <div class="stat-val">₹1,999</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-label">Audio Alerts</div>
+          <div class="stat-val text-success">Soundbox Active</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two Column Grid -->
+    <div class="app-grid">
+
+      <!-- LEFT COLUMN: Payment Configuration & QR Scanner -->
+      <aside class="sidebar-col">
+        
+        <!-- Total Bill Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><span>💳</span> Bill Amount</h2>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button id="voiceCommandBtn" class="btn btn-outline voice-mic-btn" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" title="Speak Hands-Free Command (e.g. 'Split 3800', 'Add 500', 'Pay')">
+                🎙️ Speak
+              </button>
+              <button id="clearAmountBtn" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" title="Reset bill amount to 0">
+                ✕ Clear
+              </button>
+              <span class="text-xs text-muted">INR (₹)</span>
+            </div>
+          </div>
+
+          <!-- Total Bill Direct Display & Edit -->
+          <div class="form-group">
+            <label class="form-label" for="totalAmountInput">Total Bill Amount</label>
+            <div class="input-with-icon">
+              <span class="input-prefix">₹</span>
+              <input type="number" id="totalAmountInput" class="form-input large-amount" value="3800" min="0" step="any" placeholder="0">
+            </div>
+            <!-- Voice Feedback Indicator -->
+            <div id="voiceFeedbackPill" class="voice-feedback-pill" style="display: none;">
+              <span class="voice-wave-dot"></span>
+              <span id="voiceFeedbackText">Listening...</span>
+            </div>
+          </div>
+
+          <!-- Dedicated "Enter Amount to Add" Section -->
+          <div class="add-amount-box">
+            <label class="form-label" for="addAmountInput" style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--primary-light);">➕ Enter Amount to Add</span>
+              <span class="text-xs text-muted">Type amount & press Add / Enter</span>
+            </label>
+            
+            <div class="add-amount-row">
+              <div class="input-with-icon" style="flex: 1;">
+                <span class="input-prefix" style="font-size: 1rem; left: 0.75rem; color: var(--primary);">+₹</span>
+                <input type="number" id="addAmountInput" class="form-input" style="padding-left: 2.3rem;" placeholder="e.g. 500, 1800, 1999" min="1" step="any">
+              </div>
+              <button id="addAmountBtn" class="btn btn-primary" style="white-space: nowrap; padding: 0.75rem 1.1rem;">
+                ➕ Add
+              </button>
+            </div>
+
+            <!-- Quick Add Increment Buttons -->
+            <div class="preset-chips" style="margin-top: 0.65rem;">
+              <span class="text-xs text-muted" style="align-self: center; margin-right: 0.2rem;">Quick Add:</span>
+              <button class="chip-btn quick-add-btn" data-add="100">+₹100</button>
+              <button class="chip-btn quick-add-btn" data-add="500">+₹500</button>
+              <button class="chip-btn quick-add-btn" data-add="1000">+₹1,000</button>
+              <button class="chip-btn quick-add-btn" data-add="1999" style="border-color: var(--primary-border); color: var(--primary-light); font-weight: 700;">+₹1,999 (1 Chunk)</button>
+              <button class="chip-btn quick-add-btn" data-add="2000">+₹2,000</button>
+            </div>
+
+            <!-- Added Items Breakdown Badges -->
+            <div id="addedItemsContainer" class="added-items-list" style="margin-top: 0.75rem; display: none;">
+              <div class="text-xs text-muted" style="margin-bottom: 0.35rem;">Added to Bill:</div>
+              <div id="addedItemsBadges" class="added-badges-flex"></div>
+            </div>
+          </div>
+
+          <!-- Preset Quick Bills (Replace Total) -->
+          <div style="margin-top: 0.85rem;">
+            <div class="text-xs text-muted" style="margin-bottom: 0.35rem;">Or set exact preset:</div>
+            <div class="preset-chips">
+              <button class="chip-btn preset-btn" data-amount="1999">₹1,999</button>
+              <button class="chip-btn preset-btn font-bold" data-amount="3800">₹3,800</button>
+              <button class="chip-btn preset-btn" data-amount="5000">₹5,000</button>
+              <button class="chip-btn preset-btn" data-amount="7500">₹7,500</button>
+              <button class="chip-btn preset-btn" data-amount="10000">₹10,000</button>
+            </div>
+          </div>
+
+          <!-- Split Chunk Cap Presets -->
+          <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+            <div class="text-xs text-muted" style="margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>Split Chunk Limit Cap:</span>
+              <strong id="activeChunkCapBadge" class="brand-badge" style="text-transform: none; font-size: 0.72rem;">₹1,999 / chunk</strong>
+            </div>
+            <div class="preset-chips">
+              <button class="chip-btn chunk-preset-btn active" data-chunk="1999">₹1,999 (Card/Standard)</button>
+              <button class="chip-btn chunk-preset-btn" data-chunk="4999">₹4,999 (P2P Max)</button>
+              <button class="chip-btn chunk-preset-btn" data-chunk="999">₹999 (Micro)</button>
+            </div>
+          </div>
+
+          <!-- Merchant & Advanced Settings Accordion -->
+          <details style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+            <summary style="font-size: 0.82rem; color: var(--text-secondary); cursor: pointer; font-weight: 600;">
+              ⚙️ Multi-Account Routing & Split Settings
+            </summary>
+            
+            <div style="margin-top: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label" for="splitLimitInput">Max Chunk Cap (₹)</label>
+                <input type="number" id="splitLimitInput" class="form-input" value="1999">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="merchantNameInput">Merchant Shop Name</label>
+                <input type="text" id="merchantNameInput" class="form-input" value="Satnam Enterprise">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="merchantVpaInput" style="display:flex; justify-content:space-between;">
+                  <span>Primary Account VPA (Part 1)</span>
+                  <span class="text-xs text-muted">Receives ₹1,999 Chunks</span>
+                </label>
+                <input type="text" id="merchantVpaInput" class="form-input text-mono" value="satnam.store@okhdfcbank">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="secondaryVpaInput" style="display:flex; justify-content:space-between;">
+                  <span>Secondary Account VPA (Part 2)</span>
+                  <span class="text-xs text-muted">Receives Remainder / Split 2</span>
+                </label>
+                <input type="text" id="secondaryVpaInput" class="form-input text-mono" value="satnam.secondary@okicici">
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- QR Scanner Card -->
+        <div class="card" style="margin-top: 1.5rem;">
+          <div class="card-header">
+            <h2 class="card-title"><span>📷</span> Scan Existing QR</h2>
+          </div>
+
+          <p class="text-xs text-muted" style="margin-bottom: 1rem;">
+            Point your camera or upload any merchant QR (PhonePe / BharatPe / GPay) to auto-extract amount and split it.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <button id="scannerToggleBtn" class="btn btn-secondary btn-full">
+              📷 Open Camera Scanner
+            </button>
+
+            <label class="btn btn-outline btn-full" style="cursor: pointer;">
+              📁 Upload QR Screenshot
+              <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
+            </label>
+
+            <button class="btn btn-outline btn-full text-xs" onclick="app.onQrCodeScanned('upi://pay?pa=satnam.store@okhdfcbank&pn=Satnam+Store&am=3800&cu=INR')">
+              ⚡ Test Scan: Mock ₹3,800 Merchant QR
+            </button>
+          </div>
+
+          <!-- Live Scanner Viewport Container -->
+          <div id="scannerContainer" class="scanner-container" style="display: none;">
+            <div id="reader"></div>
+            <div class="scanner-laser"></div>
+          </div>
+        <!-- 3D Hardware Soundbox Simulator Widget -->
+        <div class="card soundbox-device-card" style="margin-top: 1.5rem;">
+          <div class="soundbox-device-header flex-between">
+            <div class="soundbox-brand">
+              <span class="soundbox-brand-logo">⚡</span>
+              <span>SplitPay <strong>Soundbox 4G</strong></span>
+            </div>
+            <div class="soundbox-indicators">
+              <span class="hardware-indicator" title="4G Cellular Signal">📶 4G</span>
+              <span class="hardware-indicator" title="Battery 98%">🔋 98%</span>
+            </div>
+          </div>
+
+          <!-- LCD Backlit Segmented Display -->
+          <div class="soundbox-lcd-screen">
+            <div class="lcd-top-bar flex-between">
+              <span>NPCI CONNECTED</span>
+              <span class="lcd-live-dot">● ONLINE</span>
+            </div>
+            <div class="lcd-amount-hero">
+              <span class="lcd-rupee">₹</span><span id="soundboxLcdAmount">3,800.00</span>
+            </div>
+            <div class="lcd-sub-bar flex-between">
+              <span id="soundboxLcdStatus">AWAITING 1-PIN PAYMENT</span>
+              <span class="text-mono" id="soundboxLcdVolume">VOL: 80%</span>
+            </div>
+          </div>
+
+          <!-- Perforated Speaker Mesh with Sound Waves & Glow LED -->
+          <div class="soundbox-speaker-area" id="soundboxSpeakerArea">
+            <div class="speaker-grille">
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+            </div>
+            <div class="soundbox-led-ring" id="soundboxLedRing"></div>
+          </div>
+
+          <!-- Physical Hardware Buttons -->
+          <div class="soundbox-hardware-buttons">
+            <button class="hw-btn hw-btn-replay" id="hwReplayBtn" title="Replay Last Voice Announcement">
+              <span>🔁</span> Replay
+            </button>
+            <button class="hw-btn" id="hwChimeBtn" title="Play Signature Bell Chime">
+              <span>🔔</span> Chime
+            </button>
+            <button class="hw-btn" id="hwVolUpBtn" title="Volume Up">
+              <span>🔊</span> Vol +
+            </button>
+            <button class="hw-btn" id="hwVolDownBtn" title="Volume Down">
+              <span>🔉</span> Vol -
+            </button>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- RIGHT COLUMN: Payment Execution & Split Flow -->
+      <section class="main-content-col">
+
+        <!-- ================= MODE 1: 1-SCAN 1-PIN SMART AUTO-SPLIT (FLAGSHIP) ================= -->
+        <div id="smartSection">
+          
+          <!-- Master Split Card -->
+          <div class="card smart-master-card">
+            <div class="smart-header">
+              <div class="badge-pill-cyan">
+                <span>⚡</span> 1-Scan 1-PIN Smart Split Terminal
+              </div>
+              <div class="smart-rule-badge">
+                <span>🛡️ Single PIN Authorization Only</span>
+              </div>
+            </div>
+
+            <div class="smart-master-grid">
+              
+              <!-- Master Unified QR Code Box -->
+              <div class="master-qr-box">
+                <div class="qr-glow-frame">
+                  <div id="smartMasterQrContainer" class="qr-img-wrapper">
+                    <!-- Loaded dynamically via SVG QR endpoint -->
+                  </div>
+                </div>
+                <div class="qr-sub-caption">
+                  <span class="pulse-dot-green"></span> Scan Once with GPay, PhonePe, Paytm, BHIM
+                </div>
+              </div>
+
+              <!-- Master Details & 1-PIN Action -->
+              <div class="smart-details-pane">
+                <div class="master-amount-heading">
+                  <span class="text-xs text-muted font-bold" style="letter-spacing: 0.05em;">MASTER BILL TOTAL</span>
+                  <div class="master-amount-val">
+                    <span class="rupee">₹</span><span id="smartMasterAmountDisplay">3,800.00</span>
+                  </div>
+                </div>
+
+                <div class="smart-feature-banner">
+                  <div class="feature-item">
+                    <span class="feat-icon">📱</span>
+                    <div>
+                      <strong>Scan 1 QR Only</strong>
+                      <p>Payer scans only this single QR code for the complete bill amount.</p>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <span class="feat-icon">🔐</span>
+                    <div>
+                      <strong>Enter UPI PIN 1 Time</strong>
+                      <p>Single MPIN authentication. No annoying sequential PIN prompts.</p>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <span class="feat-icon">⚡</span>
+                    <div>
+                      <strong>Auto-Divided on Receipt</strong>
+                      <p>The system automatically divides the payment into ₹1,999 chunks upon arrival.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 1-PIN Action Buttons -->
+                <div class="smart-actions-group">
+                  <button id="openPinModalBtn" class="btn btn-primary btn-full pulse-btn" style="font-size: 1.05rem; padding: 0.95rem;">
+                    🔐 Authorize & Pay 1-Time with PIN (Simulator)
+                  </button>
+
+                  <a id="smartMasterUpiBtn" href="#" class="btn btn-secondary btn-full upi-direct-btn">
+                    🚀 Open in UPI App (1-Click Intent)
+                  </a>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- LIVE AUTO-DIVISION BLUEPRINT & PIPELINE FLOW -->
+            <div class="division-pipeline-section">
+              <div class="pipeline-header">
+                <div>
+                  <h3 class="pipeline-title"><span>🔄</span> Automatic Multi-Part Division Blueprint</h3>
+                  <p class="text-xs text-muted" style="margin-top: 0.2rem;">
+                    When you pay ₹3,800 once, the engine automatically divides and routes into these separate parts:
+                  </p>
+                </div>
+                <span id="smartPartsCountBadge" class="brand-badge">2 Destination Parts</span>
+              </div>
+
+              <!-- Dynamic Split Parts Branch Container -->
+              <div id="smartPartsContainer" class="smart-parts-grid">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
+
+            <!-- Settlement Result Banner (Initially Hidden) -->
+            <div id="smartSettlementBanner" class="smart-settlement-banner" style="display: none;">
+              <div class="settle-left">
+                <span class="settle-check">✅</span>
+                <div>
+                  <h4 class="text-success font-bold" style="font-size: 1.15rem;">1-PIN Settlement Completed!</h4>
+                  <p class="text-xs text-muted" id="smartSettlementSubtitle">Total bill ₹3,800.00 divided and credited across accounts.</p>
+                </div>
+              </div>
+              <div class="settle-actions">
+                <button class="btn btn-primary" onclick="app.showSmartReceipt()">
+                  🧾 View Settlement Slip
+                </button>
+                <button class="btn btn-outline" onclick="app.resetSmartPayment()">
+                  🔄 Reset Session
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================= MODE 2: SEQUENTIAL MULTI-QR FLOW (DIRECT P2P) ================= -->
+        <div id="customerSection" style="display: none;">
+          
+          <!-- Split Overview Card -->
+          <div class="split-overview">
+            <div class="split-overview-header">
+              <div>
+                <span class="text-xs text-muted">TOTAL BILL:</span>
+                <span id="totalBillDisplay" class="font-bold text-mono" style="font-size: 1.5rem; margin-left: 0.5rem; color: var(--text-main);">
+                  ₹3,800.00
+                </span>
+              </div>
+              <span id="splitsCountBadge" class="split-count-badge">2 Splits</span>
+            </div>
+
+            <!-- Progress Meter -->
+            <div class="progress-container">
+              <div class="progress-track">
+                <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+              </div>
+              <div class="progress-labels">
+                <span id="progressText">Paid: ₹0.00 / ₹3,800.00</span>
+                <span id="progressPercentage" class="font-bold text-success">0% Settled</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Splits Cards Container -->
+          <div id="splitsContainer" class="splits-list">
+            <!-- Dynamically populated by app.js -->
+          </div>
+
+          <!-- Bottom Control Bar -->
+          <div class="flex-between" style="margin-top: 1.5rem; gap: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-outline" onclick="app.resetAllSplits()">
+              🔄 Reset All Payments
+            </button>
+            <button class="btn btn-primary" onclick="ReceiptManager.renderReceiptModal(app.state.currentCalculation)">
+              🧾 View Settlement Slip
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= MODE 3: MERCHANT COUNTER POS KIOSK ================= -->
+        <div id="kioskSection" style="display: none;">
+          <div class="pos-terminal-view">
+            <div id="kioskStatusBadge" class="pos-status-indicator">
+              <span class="pulse-dot"></span> Waiting for Payment
+            </div>
+
+            <h2 id="kioskSplitTitle" style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.01em;">
+              SCAN TO PAY: Split 1 of 2
+            </h2>
+
+            <div id="kioskAmountDisplay" class="split-amount-display" style="justify-content: center; margin: 0.5rem 0 1rem;">
+              <span class="rupee">₹</span>1,999.00
+            </div>
+
+            <!-- Prominent Central QR Code -->
+            <div id="kioskQrContainer" class="pos-hero-qr">
+              <!-- Loaded dynamically -->
+            </div>
+
+            <p id="kioskNextHint" class="text-xs text-muted" style="margin-bottom: 1.5rem;">
+              Next: Split 2 of 2 (₹1,801.00) will appear automatically after this.
+            </p>
+
+            <div class="progress-container" style="max-width: 380px; margin: 0 auto 1.5rem;">
+              <div class="progress-track">
+                <div id="kioskProgressFill" class="progress-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap;">
+              <button class="btn btn-primary" onclick="app.simulatePayment(app.state.activeSplitIndex)">
+                ⚡ Simulate Customer Scanned & Paid
+              </button>
+              <button class="btn btn-outline" onclick="app.toggleViewMode('smart')">
+                Switch to 1-Scan 1-PIN View
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= MODE 4: FINTECH TREASURY & ANALYTICS ================= -->
+        <div id="treasurySection" style="display: none;">
+          
+          <!-- Treasury Executive KPI Ribbon -->
+          <div class="treasury-kpi-grid">
+            <div class="card kpi-card">
+              <div class="kpi-icon">💰</div>
+              <div>
+                <div class="kpi-label">TOTAL VOLUME SETTLED</div>
+                <div class="kpi-val" id="kpiTotalVolume">₹1,48,200.00</div>
+                <div class="kpi-delta text-success">↑ 100% Cleared via NPCI</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card">
+              <div class="kpi-icon">⚡</div>
+              <div>
+                <div class="kpi-label">SPLIT TRANSACTIONS</div>
+                <div class="kpi-val text-cyan" id="kpiTotalSplits">74 Cleared</div>
+                <div class="kpi-delta text-muted">Zero split failures</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card">
+              <div class="kpi-icon">🏦</div>
+              <div>
+                <div class="kpi-label">ACTIVE ROUTING BANKS</div>
+                <div class="kpi-val" id="kpiActiveBanks">4 Accounts</div>
+                <div class="kpi-delta text-success">Load-balanced</div>
+              </div>
+            </div>
+
+            <div class="card kpi-card">
+              <div class="kpi-icon">🛡️</div>
+              <div>
+                <div class="kpi-label">GATEWAY FEES SAVED</div>
+                <div class="kpi-val text-success" id="kpiMdrSavings">₹2,964.00</div>
+                <div class="kpi-delta text-success">0% MDR vs Payment Gateways</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank Volume Allocation Visualizer -->
+          <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header flex-between">
+              <h3 class="card-title"><span>📊</span> Real-Time Treasury Bank Allocation</h3>
+              <span class="text-xs text-muted">Automated Multi-Bank Load Balancing</span>
+            </div>
+            <div class="allocation-bars" id="treasuryAllocationBars">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Multi-Bank Accounts Management -->
+          <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header flex-between flex-wrap gap-2">
+              <div>
+                <h3 class="card-title"><span>🏦</span> Destination Bank Accounts & Daily Volume Caps</h3>
+                <p class="text-xs text-muted">Manage destination bank accounts, UPI VPAs, and RBI volume safeguards</p>
+              </div>
+              <button class="btn btn-primary" onclick="app.openAddBankModal()">
+                ➕ Add Bank Account
+              </button>
+            </div>
+
+            <!-- Routing Strategy Controls -->
+            <div class="routing-controls-panel">
+              <div class="routing-control-item" style="flex: 1;">
+                <label class="form-label" style="margin-bottom: 0.35rem;">Multi-Bank Routing Strategy</label>
+                <div class="preset-chips">
+                  <button class="chip-btn routing-rule-btn active" data-rule="round_robin">
+                    🔄 Round-Robin (Equal Distribution across all accounts)
+                  </button>
+                  <button class="chip-btn routing-rule-btn" data-rule="limit_cap">
+                    🛡️ Daily Limit Cap Overflow (Auto-switches to next bank when full)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bank Accounts Cards Grid -->
+            <div class="accounts-grid" id="treasuryAccountsGrid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Reconciliation Audit Trail & Export Center -->
+          <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header flex-between flex-wrap gap-2">
+              <div>
+                <h3 class="card-title"><span>🧾</span> NPCI Settlement Reconciliation Audit Trail</h3>
+                <p class="text-xs text-muted">Real-time ledger of completed splits with Bank UTRs and NPCI response codes</p>
+              </div>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="app.exportAuditCsv()" style="background: linear-gradient(135deg, #059669, #10b981);">
+                  📥 Download CSV Report
+                </button>
+                <button class="btn btn-secondary" onclick="app.copyTreasuryDigest()">
+                  📋 WhatsApp Digest
+                </button>
+              </div>
+            </div>
+
+            <!-- Reconciliation Table -->
+            <div class="table-responsive" style="margin-top: 1rem;">
+              <table class="audit-table">
+                <thead>
+                  <tr>
+                    <th>Ref / Order ID</th>
+                    <th>Split Parts</th>
+                    <th>Banks Routed</th>
+                    <th class="text-right">Amount</th>
+                    <th class="text-center">NPCI Status</th>
+                    <th class="text-right">Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Webhook Developer Sandbox -->
+          <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header flex-between">
+              <h3 class="card-title"><span>⚡</span> Merchant Webhook & Real-Time Events Sandbox</h3>
+              <span class="brand-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">HMAC-SHA256 SIGNED</span>
+            </div>
+            <p class="text-xs text-muted" style="margin-bottom: 1rem;">
+              Simulate enterprise webhooks sent to your server when payment splits clear.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 0.75rem;">
+              <input type="text" id="webhookEndpointInput" class="form-input text-mono" value="https://merchant.myshop.com/api/v1/webhook" placeholder="Your Webhook URL">
+              <button class="btn btn-primary" onclick="app.testWebhookDispatch()">
+                🚀 Dispatch Test Webhook
+              </button>
+            </div>
+
+            <!-- Webhook Response Inspector -->
+            <div id="webhookResultBox" class="webhook-result-box" style="display: none; margin-top: 1rem;">
+              <div class="webhook-result-header flex-between">
+                <span class="text-success font-bold">✓ Webhook Dispatched (Status 200 OK)</span>
+                <span id="webhookDeliveryTime" class="text-xs text-muted"></span>
+              </div>
+              <pre id="webhookPayloadCode" class="webhook-code-block"></pre>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- ================= INTERACTIVE 1-PIN AUTHENTICATION MODAL ================= -->
+  <div id="pinModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card pin-auth-card animate-scale-up" onclick="event.stopPropagation()">
+      <div class="pin-card-header">
+        <div class="upi-logo-badge">
+          <span class="upi-text">UPI</span>
+          <span class="npci-secure">NPCI 2FA SECURED</span>
+        </div>
+        <button class="close-modal-btn" onclick="app.closePinModal()">✕</button>
+      </div>
+
+      <div class="pin-payer-info">
+        <div class="text-xs text-muted">PAYING TO</div>
+        <div class="merchant-name-title" id="pinMerchantName">Satnam Enterprise</div>
+        <div class="pin-amount-hero">
+          <span class="rupee">₹</span><span id="pinModalAmount">3,800.00</span>
+        </div>
+        <div class="bank-source-box">
+          <span style="font-size: 1.5rem;">🏦</span>
+          <div>
+            <strong>HDFC Bank Savings Account</strong>
+            <div class="text-xs text-muted">A/C No. ending in •••• 4821</div>
+          </div>
+        </div>
+        <div class="pin-smart-notice">
+          <span>⚡</span>
+          <span><strong>1-PIN Auto-Split:</strong> Authorizing this single payment will automatically divide it into ₹1,999 + remainder chunks upon receipt!</span>
+        </div>
+      </div>
+
+      <div class="pin-input-area">
+        <label class="pin-label">ENTER 6-DIGIT UPI MPIN</label>
+        <div class="pin-dots-row" id="pinDotsRow">
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+        </div>
+
+        <!-- Numeric Keypad -->
+        <div class="pin-keypad">
+          <button type="button" class="key-btn" data-key="1">1</button>
+          <button type="button" class="key-btn" data-key="2">2</button>
+          <button type="button" class="key-btn" data-key="3">3</button>
+          <button type="button" class="key-btn" data-key="4">4</button>
+          <button type="button" class="key-btn" data-key="5">5</button>
+          <button type="button" class="key-btn" data-key="6">6</button>
+          <button type="button" class="key-btn" data-key="7">7</button>
+          <button type="button" class="key-btn" data-key="8">8</button>
+          <button type="button" class="key-btn" data-key="9">9</button>
+          <button type="button" class="key-btn key-action" data-key="clear">CLR</button>
+          <button type="button" class="key-btn" data-key="0">0</button>
+          <button type="button" class="key-btn key-action" data-key="back">⌫</button>
+        </div>
+
+        <button id="submitPinBtn" class="btn btn-primary btn-full pulse-btn" style="margin-top: 1rem; padding: 0.85rem; font-size: 1rem;">
+          ✓ Authorize & Execute Split
+        </button>
+        <div id="pinStatusMsg" class="pin-status-text" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Live NPCI Bank Credit Alerts Container -->
+  <div id="bankAlertsContainer" class="bank-alerts-container"></div>
+
+  <!-- Add Bank Account Modal -->
+  <div id="addBankModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card bank-edit-card animate-scale-up" onclick="event.stopPropagation()">
+      <div class="modal-header flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+        <h3 class="card-title" style="font-size: 1.15rem;"><span>🏦</span> Add Destination Bank Account</h3>
+        <button class="close-modal-btn" onclick="app.closeAddBankModal()">✕</button>
+      </div>
+
+      <form id="addBankForm" onsubmit="event.preventDefault(); app.handleAddBankSubmit();">
+        <div class="form-group" style="margin-top: 1rem;">
+          <label class="form-label" for="newBankSelect">Bank Institution</label>
+          <select id="newBankSelect" class="form-input">
+            <option value="HDFC">HDFC Bank</option>
+            <option value="ICICI">ICICI Bank</option>
+            <option value="SBI">State Bank of India (SBI)</option>
+            <option value="AXIS">Axis Bank</option>
+            <option value="PAYTM">Paytm Payments Bank / Wallet</option>
+            <option value="KOTAK">Kotak Mahindra Bank</option>
+            <option value="OTHER">Other Bank / Escrow</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="newAccountLabel">Account Label / Purpose</label>
+          <input type="text" id="newAccountLabel" class="form-input" placeholder="e.g. Primary Current A/C, Reserve Escrow A/C" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="newAccountVpa">UPI ID / VPA</label>
+          <input type="text" id="newAccountVpa" class="form-input text-mono" placeholder="username@okhdfcbank" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="newDailyLimit">Daily Volume Limit Cap (₹)</label>
+          <input type="number" id="newDailyLimit" class="form-input" value="100000" min="1000" step="1000" required>
+          <span class="text-xs text-muted">Auto-overflows to other accounts once daily cap is reached</span>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-outline" onclick="app.closeAddBankModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Bank Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= CUSTOMER SMARTPHONE MIRROR DISPLAY MODAL ================= -->
+  <div id="phoneMirrorModal" class="modal-overlay" style="display: none;" onclick="app.closePhoneMirror(event)">
+    <div class="phone-mockup-wrapper animate-scale-up" onclick="event.stopPropagation()">
+      <div class="phone-mockup-chassis">
+        <!-- Phone Notch / Dynamic Island -->
+        <div class="phone-notch">
+          <div class="phone-notch-camera"></div>
+          <div class="phone-notch-speaker"></div>
+        </div>
+
+        <!-- Phone Status Bar -->
+        <div class="phone-status-bar flex-between">
+          <span class="phone-clock" id="phoneLiveClock">11:30</span>
+          <div class="phone-status-icons">
+            <span>5G</span>
+            <span>📶</span>
+            <span>🔋</span>
+          </div>
+        </div>
+
+        <!-- In-Phone App Screen (Google Pay / PhonePe Theme) -->
+        <div class="phone-screen-content">
+          <div class="phone-app-header flex-between">
+            <button class="phone-back-btn" onclick="app.closePhoneMirror()">✕</button>
+            <div class="phone-app-title">Paying Merchant</div>
+            <span class="phone-secure-lock">🔒</span>
+          </div>
+
+          <div class="phone-merchant-profile text-center">
+            <div class="phone-avatar-ring">
+              <span class="phone-avatar-letter">S</span>
+              <span class="phone-verified-tick">✓</span>
+            </div>
+            <div class="phone-merchant-name" id="phoneMerchantName">Satnam Enterprise</div>
+            <div class="phone-merchant-vpa text-mono" id="phoneMerchantVpa">satnam.store@okhdfcbank</div>
+            <span class="phone-verified-badge">Banking Name: Satnam Enterprise</span>
+          </div>
+
+          <div class="phone-bill-card">
+            <div class="text-xs text-muted font-bold" style="letter-spacing: 0.05em;">TOTAL BILL AMOUNT</div>
+            <div class="phone-amount-display">
+              <span class="rupee">₹</span><span id="phoneAmountVal">3,800.00</span>
+            </div>
+            <div class="phone-split-pill" id="phoneSplitHint">
+              ⚡ 1-PIN Auto-Split (2 parts: ₹1,999 + ₹1,801)
+            </div>
+          </div>
+
+          <!-- Bank Account Selector in Phone -->
+          <div class="phone-bank-picker">
+            <div class="flex-between">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-size: 1.3rem;">🏦</span>
+                <div>
+                  <div class="font-bold text-xs" style="color: #fff;">HDFC Bank •••• 4821</div>
+                  <div class="text-xs text-muted">Savings Account</div>
+                </div>
+              </div>
+              <span class="text-success text-xs font-bold">✓ Primary</span>
+            </div>
+          </div>
+
+          <!-- Interactive Action on Phone -->
+          <div class="phone-pay-action-box">
+            <button id="phonePayNowBtn" class="phone-pay-btn pulse-btn" onclick="app.handlePhonePayClick()">
+              🔐 Pay ₹<span id="phonePayBtnAmount">3,800</span> with UPI PIN
+            </button>
+          </div>
+
+          <!-- In-Phone Success Animation Overlay -->
+          <div id="phoneSuccessOverlay" class="phone-success-screen" style="display: none;">
+            <div class="phone-success-circle animate-pop">✓</div>
+            <div class="font-bold text-success" style="font-size: 1.3rem; margin-top: 0.75rem;">Paid Successfully!</div>
+            <div class="phone-amount-display" style="font-size: 1.8rem; margin: 0.35rem 0;">
+              ₹<span id="phonePaidSuccessAmount">3,800.00</span>
+            </div>
+            <div class="text-xs text-muted" id="phoneSuccessUtrText">UPI Ref: 261010184918</div>
+            <div class="phone-success-splits" id="phoneSuccessSplits">
+              <!-- Dynamically populated parts -->
+            </div>
+            <button class="btn btn-primary" style="margin-top: 1rem; width: 100%; border-radius: 999px; font-weight: 700;" onclick="app.resetPhoneScreen()">
+              Done
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Phone Home Bar -->
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confetti Canvas for Celebration -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Vendor Scripts -->
+  <script src="/js/vendor/html5-qrcode.min.js"></script>
+  <!-- Fallback if vendor script fails -->
+  <script>
+    if (!window.Html5Qrcode) {
+      const s = document.createElement('script');
+      s.src = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
+      document.head.appendChild(s);
+    }
+  </script>
+
+  <!-- Application Modules -->
+  <script src="/js/split-engine.js"></script>
+  <script src="/js/soundbox.js"></script>
+  <script src="/js/receipt.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
