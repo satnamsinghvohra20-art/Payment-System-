@@ -104,6 +104,7 @@ class SplitPayApp {
     this.cacheDom();
     this.bindEvents();
     this.fetchServerInfo();
+    this.fetchMerchantConfig();
     this.renderAddedItems();
     this.calculateAndRender();
   }
@@ -215,7 +216,25 @@ class SplitPayApp {
       phoneSuccessOverlay: document.getElementById('phoneSuccessOverlay'),
       phonePaidSuccessAmount: document.getElementById('phonePaidSuccessAmount'),
       phoneSuccessUtrText: document.getElementById('phoneSuccessUtrText'),
-      phoneSuccessSplits: document.getElementById('phoneSuccessSplits')
+      phoneSuccessSplits: document.getElementById('phoneSuccessSplits'),
+
+      // Gateway Configuration & Pipeline
+      gatewayConfigModal: document.getElementById('gatewayConfigModal'),
+      gatewayConfigBtn: document.getElementById('gatewayConfigBtn'),
+      activeGatewayDot: document.getElementById('activeGatewayDot'),
+      activeGatewayText: document.getElementById('activeGatewayText'),
+      gatewaySelect: document.getElementById('gatewaySelect'),
+      liveCredentialsFields: document.getElementById('liveCredentialsFields'),
+      gatewayAppIdInput: document.getElementById('gatewayAppIdInput'),
+      gatewaySecretKeyInput: document.getElementById('gatewaySecretKeyInput'),
+      gatewayWebhookSecretInput: document.getElementById('gatewayWebhookSecretInput'),
+      webhookIngressUrl: document.getElementById('webhookIngressUrl'),
+
+      // Commercial SaaS Pricing & ROI Calculator
+      saasPricingModal: document.getElementById('saasPricingModal'),
+      roiVolumeInput: document.getElementById('roiVolumeInput'),
+      roiMdrSaved: document.getElementById('roiMdrSaved'),
+      roiNetSaved: document.getElementById('roiNetSaved')
     };
   }
 
@@ -1887,6 +1906,156 @@ class SplitPayApp {
     if (this.dom.phoneSuccessOverlay) {
       this.dom.phoneSuccessOverlay.style.display = 'none';
     }
+  }
+
+  // ================= ENTERPRISE GATEWAY & PIPELINE CONTROLLER =================
+  fetchMerchantConfig() {
+    fetch('/api/v1/merchant/config')
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.merchant) {
+          const m = res.merchant;
+          this.state.merchant.name = m.name;
+          this.state.merchant.gateway = m.active_gateway || 'sandbox';
+          this.updateGatewayBadge(m.active_gateway);
+          if (this.dom.gatewaySelect) this.dom.gatewaySelect.value = m.active_gateway || 'sandbox';
+          if (this.dom.gatewayAppIdInput) this.dom.gatewayAppIdInput.value = m.gateway_app_id || '';
+          this.onGatewaySelectChange(m.active_gateway);
+        }
+      })
+      .catch(() => {});
+  }
+
+  updateGatewayBadge(gateway) {
+    const isLive = gateway && gateway !== 'sandbox';
+    if (this.dom.activeGatewayDot) {
+      this.dom.activeGatewayDot.className = isLive ? 'pulse-dot-green' : 'pulse-dot';
+    }
+    if (this.dom.activeGatewayText) {
+      const names = {
+        cashfree: '🟢 Cashfree Live',
+        razorpay: '🟢 Razorpay Live',
+        direct_bank: '🏦 Direct Bank Live',
+        sandbox: '🟡 Sandbox Mode'
+      };
+      this.dom.activeGatewayText.textContent = names[gateway] || '🟡 Sandbox Mode';
+    }
+  }
+
+  openGatewayConfigModal() {
+    if (this.dom.gatewayConfigModal) {
+      this.dom.gatewayConfigModal.style.display = 'flex';
+    }
+  }
+
+  closeGatewayConfigModal(e) {
+    if (e && e.target && e.target !== this.dom.gatewayConfigModal && !e.target.classList.contains('modal-close-btn')) return;
+    if (this.dom.gatewayConfigModal) {
+      this.dom.gatewayConfigModal.style.display = 'none';
+    }
+  }
+
+  onGatewaySelectChange(val) {
+    const isLive = val && val !== 'sandbox';
+    if (this.dom.liveCredentialsFields) {
+      this.dom.liveCredentialsFields.style.display = isLive ? 'block' : 'none';
+    }
+    if (this.dom.webhookIngressUrl) {
+      const origin = window.location.origin;
+      this.dom.webhookIngressUrl.value = `${origin}/api/v1/webhooks/incoming/${val || 'cashfree'}`;
+    }
+  }
+
+  saveGatewayConfig(e) {
+    if (e) e.preventDefault();
+    const gateway = this.dom.gatewaySelect ? this.dom.gatewaySelect.value : 'sandbox';
+    const appId = this.dom.gatewayAppIdInput ? this.dom.gatewayAppIdInput.value.trim() : '';
+    const secretKey = this.dom.gatewaySecretKeyInput ? this.dom.gatewaySecretKeyInput.value.trim() : '';
+    const webhookSecret = this.dom.gatewayWebhookSecretInput ? this.dom.gatewayWebhookSecretInput.value.trim() : '';
+
+    fetch('/api/v1/merchant/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        active_gateway: gateway,
+        gateway_app_id: appId,
+        gateway_secret_key: secretKey,
+        gateway_webhook_secret: webhookSecret
+      })
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) {
+          this.updateGatewayBadge(gateway);
+          this.soundbox.playBeep();
+          alert(`Pipeline Mode Updated to: ${gateway.toUpperCase()}!`);
+          this.closeGatewayConfigModal();
+          this.calculateAndRender();
+        }
+      })
+      .catch(err => {
+        alert('Failed to save gateway config: ' + err.message);
+      });
+  }
+
+  copyWebhookUrl() {
+    if (this.dom.webhookIngressUrl) {
+      navigator.clipboard.writeText(this.dom.webhookIngressUrl.value).then(() => {
+        alert('Webhook Ingress URL copied to clipboard!\nPaste this into your Cashfree/Razorpay webhook settings.');
+      }).catch(() => {
+        this.dom.webhookIngressUrl.select();
+        document.execCommand('copy');
+        alert('Webhook URL copied!');
+      });
+    }
+  }
+
+  // ================= COMMERCIAL SAAS & ROI CALCULATOR =================
+  openPricingModal() {
+    if (this.dom.saasPricingModal) {
+      this.dom.saasPricingModal.style.display = 'flex';
+      this.calculateRoiSavings(this.dom.roiVolumeInput ? this.dom.roiVolumeInput.value : 500000);
+    }
+  }
+
+  closePricingModal(e) {
+    if (e && e.target && e.target !== this.dom.saasPricingModal && !e.target.classList.contains('modal-close-btn')) return;
+    if (this.dom.saasPricingModal) {
+      this.dom.saasPricingModal.style.display = 'none';
+    }
+  }
+
+  calculateRoiSavings(volume) {
+    const vol = Math.max(0, parseFloat(volume) || 0);
+    const mdrSaved = Math.round(vol * 0.011); // 1.1% interchange saved by keeping chunks <= 1999
+    const subCost = 499;
+    const netProfit = Math.max(0, mdrSaved - subCost);
+
+    if (this.dom.roiMdrSaved) {
+      this.dom.roiMdrSaved.textContent = `₹${mdrSaved.toLocaleString('en-IN')} / mo`;
+    }
+    if (this.dom.roiNetSaved) {
+      this.dom.roiNetSaved.textContent = `+₹${netProfit.toLocaleString('en-IN')} / mo`;
+    }
+  }
+
+  subscribePlan(planName, amount) {
+    fetch('/api/v1/subscriptions/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planName, amount })
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) {
+          this.triggerConfetti();
+          alert(`🎉 Subscription Activated!\nPlan: ${planName}\nStatus: Active for 30 Days.`);
+          this.closePricingModal();
+        }
+      })
+      .catch(err => {
+        alert('Subscription error: ' + err.message);
+      });
   }
 }
 
