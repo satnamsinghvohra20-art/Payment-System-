@@ -7,3 +7,7 @@ Thumbs.db
 .env
 .env.local
 *.log
+data/*.db*
+data/*.db-wal
+data/*.db-shm
+git-push.js
