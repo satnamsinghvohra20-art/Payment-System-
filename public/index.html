@@ -312,6 +312,18 @@
               <span>🔉</span> Vol -
             </button>
           </div>
+
+          <!-- Multi-Brand Voice Persona Selector -->
+          <div class="soundbox-persona-bar flex-between" style="margin-top: 0.75rem; padding: 0.45rem 0.65rem; background: rgba(0,0,0,0.35); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+            <label class="text-xs text-muted font-bold" for="soundboxPersonaSelect" style="white-space: nowrap;">Voice Engine:</label>
+            <select id="soundboxPersonaSelect" class="form-input text-xs" style="padding: 0.25rem 0.5rem; width: auto; background: #0b0f19; color: var(--cyan); border-color: rgba(6,182,212,0.3);" onchange="app.setSoundboxPersona(this.value)">
+              <option value="paytm_hindi">🗣️ Paytm Classic Hindi (पेटीएम पर...)</option>
+              <option value="paytm_cricket">🏏 Paytm Cricket Edition (चौका-छक्का!)</option>
+              <option value="gpay_chime">⚡ Google Pay Digital Chime</option>
+              <option value="english">💼 English Executive</option>
+              <option value="hindi">🇮🇳 SplitPay Hindi</option>
+            </select>
+          </div>
         </div>
 
       </aside>
@@ -810,24 +822,93 @@
           </div>
         </div>
 
-        <!-- In-Phone App Screen (Google Pay / PhonePe Theme) -->
-        <div class="phone-screen-content">
-          <div class="phone-app-header flex-between">
-            <button class="phone-back-btn" onclick="app.closePhoneMirror()">✕</button>
-            <div class="phone-app-title">Paying Merchant</div>
-            <span class="phone-secure-lock">🔒</span>
+        <!-- In-Phone App Screen with Brand Switcher (Google Pay & Paytm Clones) -->
+        <div class="phone-screen-content brand-gpay" id="phoneScreenContent">
+          
+          <!-- Brand Switcher Tabs inside Phone -->
+          <div class="phone-brand-tabs">
+            <button class="phone-brand-tab active" id="phoneTabGpay" onclick="app.setPhoneBrand('gpay')">
+              <span class="gpay-tab-dot">●</span> Google Pay
+            </button>
+            <button class="phone-brand-tab" id="phoneTabPaytm" onclick="app.setPhoneBrand('paytm')">
+              <span class="paytm-tab-icon">P</span> Paytm
+            </button>
+            <button class="phone-brand-tab" id="phoneTabStandard" onclick="app.setPhoneBrand('standard')">
+              <span>⚡</span> SplitPay UPI
+            </button>
           </div>
 
+          <!-- Phone App Header -->
+          <div class="phone-app-header flex-between">
+            <button class="phone-back-btn" onclick="app.closePhoneMirror()">✕</button>
+            <div class="phone-app-title" id="phoneAppBrandTitle">
+              <span id="gpayHeaderLogo" class="gpay-header-badge"><span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span> Pay</span>
+              <span id="paytmHeaderLogo" class="paytm-header-badge" style="display: none;">Pay<strong>tm</strong> Payments</span>
+              <span id="standardHeaderLogo" class="standard-header-badge" style="display: none;">SplitPay 1999</span>
+            </div>
+            <span class="phone-secure-lock" title="NPCI 256-bit Encrypted">🔒</span>
+          </div>
+
+          <!-- GPAY FEATURE: Quick Pay Contact Avatar Ring -->
+          <div class="gpay-contacts-section" id="gpayContactsSection">
+            <div class="gpay-section-label">GOOGLE PAY QUICK CONTACTS</div>
+            <div class="gpay-contacts-scroll">
+              <div class="gpay-contact-item active" onclick="app.selectQuickContact('Satnam Enterprise', 'satnam.store@okhdfcbank')">
+                <div class="gpay-contact-avatar gpay-avatar-store">
+                  <span>SE</span>
+                  <span class="gpay-verified-dot">✓</span>
+                </div>
+                <div class="gpay-contact-name">Satnam Store</div>
+              </div>
+              <div class="gpay-contact-item" onclick="app.selectQuickContact('Rahul Sharma', 'rahul.upi@oksbi')">
+                <div class="gpay-contact-avatar gpay-avatar-user1">
+                  <span>RS</span>
+                </div>
+                <div class="gpay-contact-name">Rahul S.</div>
+              </div>
+              <div class="gpay-contact-item" onclick="app.selectQuickContact('Priya Patel', 'priya.p@okaxis')">
+                <div class="gpay-contact-avatar gpay-avatar-user2">
+                  <span>PP</span>
+                </div>
+                <div class="gpay-contact-name">Priya P.</div>
+              </div>
+              <div class="gpay-contact-item" onclick="app.selectQuickContact('Aman Verma', 'aman.v@okhdfcbank')">
+                <div class="gpay-contact-avatar gpay-avatar-user3">
+                  <span>AV</span>
+                </div>
+                <div class="gpay-contact-name">Aman V.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYTM FEATURE: Paytm Passbook & Wallet Banner -->
+          <div class="paytm-passbook-banner" id="paytmPassbookBanner" style="display: none;">
+            <div class="flex-between">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.25rem;">📖</span>
+                <div>
+                  <div class="font-bold text-xs" style="color: #00b9f5;">Paytm Passbook</div>
+                  <div class="text-xs text-muted" style="font-size: 0.68rem;">Wallet Bal: <strong class="text-success" id="paytmWalletBalPreview">₹2,450.00</strong></div>
+                </div>
+              </div>
+              <button class="paytm-passbook-btn" onclick="app.openPaytmPassbook()">
+                Passbook ➔
+              </button>
+            </div>
+          </div>
+
+          <!-- Merchant Profile -->
           <div class="phone-merchant-profile text-center">
-            <div class="phone-avatar-ring">
-              <span class="phone-avatar-letter">S</span>
+            <div class="phone-avatar-ring" id="phoneAvatarRing">
+              <span class="phone-avatar-letter" id="phoneAvatarLetter">S</span>
               <span class="phone-verified-tick">✓</span>
             </div>
             <div class="phone-merchant-name" id="phoneMerchantName">Satnam Enterprise</div>
             <div class="phone-merchant-vpa text-mono" id="phoneMerchantVpa">satnam.store@okhdfcbank</div>
-            <span class="phone-verified-badge">Banking Name: Satnam Enterprise</span>
+            <span class="phone-verified-badge" id="phoneVerifiedBadge">Secured by Google Pay & NPCI</span>
           </div>
 
+          <!-- Bill Amount Card -->
           <div class="phone-bill-card">
             <div class="text-xs text-muted font-bold" style="letter-spacing: 0.05em;">TOTAL BILL AMOUNT</div>
             <div class="phone-amount-display">
@@ -838,14 +919,65 @@
             </div>
           </div>
 
-          <!-- Bank Account Selector in Phone -->
-          <div class="phone-bank-picker">
+          <!-- GPAY FEATURE: Scratch Card Reward Teaser -->
+          <div class="gpay-reward-teaser" id="gpayRewardTeaser">
+            <span>🎁</span>
+            <div>
+              <div class="font-bold text-xs" style="color: #60a5fa;">Google Pay Scratch Reward</div>
+              <div class="text-xs text-muted" style="font-size: 0.68rem;">Complete this split payment to unlock a cashback scratch card!</div>
+            </div>
+          </div>
+
+          <!-- PAYTM FEATURE: Payment Instruments Selector (Wallet / Postpaid BNPL / UPI Lite / Bank) -->
+          <div class="paytm-instruments-box" id="paytmInstrumentsBox" style="display: none;">
+            <div class="text-xs font-bold text-muted" style="margin-bottom: 0.4rem; letter-spacing: 0.04em;">CHOOSE PAYMENT METHOD</div>
+            <div class="paytm-radio-list">
+              <label class="paytm-radio-item" id="paytmOptWallet">
+                <input type="radio" name="paytmInstrument" value="wallet" onchange="app.onPaymentInstrumentChange('wallet')">
+                <div class="paytm-instrument-info">
+                  <div class="font-bold text-xs" style="color: #fff;">👛 Paytm Wallet</div>
+                  <div class="text-xs text-muted">Balance: ₹2,450.00 (Instant 1-Tap Pay)</div>
+                </div>
+                <span class="paytm-tag-fast">FAST</span>
+              </label>
+
+              <label class="paytm-radio-item" id="paytmOptPostpaid">
+                <input type="radio" name="paytmInstrument" value="postpaid" onchange="app.onPaymentInstrumentChange('postpaid')">
+                <div class="paytm-instrument-info">
+                  <div class="font-bold text-xs" style="color: #fff;">💳 Paytm Postpaid (BNPL)</div>
+                  <div class="text-xs text-muted">Credit Limit: ₹10,000.00 (Spend Now, Pay Next Month)</div>
+                </div>
+                <span class="paytm-tag-bnpl">0% EMI</span>
+              </label>
+
+              <label class="paytm-radio-item" id="paytmOptUpiLite">
+                <input type="radio" name="paytmInstrument" value="upilite" onchange="app.onPaymentInstrumentChange('upilite')">
+                <div class="paytm-instrument-info">
+                  <div class="font-bold text-xs" style="color: #fff;">⚡ Paytm UPI Lite</div>
+                  <div class="text-xs text-muted">PIN-less payments up to ₹500</div>
+                </div>
+                <span class="paytm-tag-lite">NO PIN</span>
+              </label>
+
+              <label class="paytm-radio-item selected" id="paytmOptBank">
+                <input type="radio" name="paytmInstrument" value="bank" checked onchange="app.onPaymentInstrumentChange('bank')">
+                <div class="paytm-instrument-info">
+                  <div class="font-bold text-xs" style="color: #fff;">🏦 HDFC Bank •••• 4821</div>
+                  <div class="text-xs text-muted">1-Scan 1-PIN Auto-Split (Receives Chunks)</div>
+                </div>
+                <span class="text-success text-xs font-bold">✓ Active</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Standard Bank Account Picker (Shown when in GPay or Standard Mode) -->
+          <div class="phone-bank-picker" id="gpayBankPicker">
             <div class="flex-between">
               <div style="display: flex; align-items: center; gap: 0.6rem;">
                 <span style="font-size: 1.3rem;">🏦</span>
                 <div>
                   <div class="font-bold text-xs" style="color: #fff;">HDFC Bank •••• 4821</div>
-                  <div class="text-xs text-muted">Savings Account</div>
+                  <div class="text-xs text-muted" id="gpayBankPickerSub">Google Pay UPI • Primary A/C</div>
                 </div>
               </div>
               <span class="text-success text-xs font-bold">✓ Primary</span>
@@ -859,10 +991,74 @@
             </button>
           </div>
 
+          <!-- PAYTM FEATURE: Passbook Slide-Up Ledger Drawer -->
+          <div id="paytmPassbookDrawer" class="paytm-passbook-drawer" style="display: none;">
+            <div class="passbook-drawer-header flex-between">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.15rem; color: #00b9f5;">📖</span>
+                <span class="font-bold text-sm" style="color: #fff;">Paytm Passbook</span>
+              </div>
+              <button class="passbook-close-btn" onclick="app.closePaytmPassbook()">✕</button>
+            </div>
+            
+            <div class="passbook-balance-overview">
+              <div class="passbook-bal-card">
+                <div class="text-xs text-muted">Total Available Balance</div>
+                <div class="passbook-total-bal" id="passbookTotalBal">₹70,850.00</div>
+                <div class="passbook-bal-breakdown flex-between text-xs" style="margin-top: 0.4rem;">
+                  <span>👛 Wallet: ₹2,450.00</span>
+                  <span>💳 Postpaid: ₹10,000.00</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="passbook-filter-tabs">
+              <button class="passbook-tab-btn active" data-filter="all" onclick="app.filterPassbook('all')">All</button>
+              <button class="passbook-tab-btn" data-filter="received" onclick="app.filterPassbook('received')">Received (+)</button>
+              <button class="passbook-tab-btn" data-filter="paid" onclick="app.filterPassbook('paid')">Paid (-)</button>
+            </div>
+
+            <div class="passbook-txns-list" id="passbookTxnsList">
+              <!-- Dynamically populated entries -->
+            </div>
+          </div>
+
+          <!-- GPAY FEATURE: Interactive Scratch Card Reward Modal -->
+          <div id="gpayScratchOverlay" class="gpay-scratch-modal" style="display: none;">
+            <div class="gpay-scratch-box animate-scale-up">
+              <div class="gpay-scratch-header flex-between">
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                  <span class="gpay-tab-dot">●</span>
+                  <span class="font-bold text-xs" style="color: #60a5fa;">Google Pay Rewards</span>
+                </div>
+                <button class="modal-close-btn text-xs" onclick="app.closeScratchCard()">✕</button>
+              </div>
+
+              <div class="gpay-scratch-canvas-container">
+                <div class="gpay-scratch-revealed-content" id="scratchRevealedContent">
+                  <div class="scratch-gift-icon">🎉</div>
+                  <div class="scratch-reward-title">You Won Cashback!</div>
+                  <div class="scratch-reward-amount" id="scratchRewardAmount">₹48</div>
+                  <div class="text-xs text-muted" style="margin-top: 0.35rem; font-size: 0.7rem;">Credited directly to your linked HDFC Bank account!</div>
+                  <div class="scratch-reward-ref text-mono" id="scratchRewardRef" style="font-size: 0.65rem; color: #94a3b8; margin-top: 0.25rem;">Ref: GPAY_RW_94819</div>
+                </div>
+                <canvas id="scratchCanvas" width="270" height="200" class="scratch-canvas"></canvas>
+              </div>
+
+              <div class="scratch-instruction text-center text-xs text-muted" id="scratchInstructionText">
+                👆 <strong>Scratch foil with mouse or finger</strong> to reveal your cashback reward!
+              </div>
+
+              <button id="scratchDoneBtn" class="btn btn-primary btn-full font-bold" style="margin-top: 0.75rem; border-radius: 999px; display: none;" onclick="app.closeScratchCard()">
+                Claim Reward & Done
+              </button>
+            </div>
+          </div>
+
           <!-- In-Phone Success Animation Overlay -->
           <div id="phoneSuccessOverlay" class="phone-success-screen" style="display: none;">
             <div class="phone-success-circle animate-pop">✓</div>
-            <div class="font-bold text-success" style="font-size: 1.3rem; margin-top: 0.75rem;">Paid Successfully!</div>
+            <div class="font-bold text-success" style="font-size: 1.3rem; margin-top: 0.75rem;" id="phoneSuccessTitle">Paid Successfully!</div>
             <div class="phone-amount-display" style="font-size: 1.8rem; margin: 0.35rem 0;">
               ₹<span id="phonePaidSuccessAmount">3,800.00</span>
             </div>
@@ -870,7 +1066,13 @@
             <div class="phone-success-splits" id="phoneSuccessSplits">
               <!-- Dynamically populated parts -->
             </div>
-            <button class="btn btn-primary" style="margin-top: 1rem; width: 100%; border-radius: 999px; font-weight: 700;" onclick="app.resetPhoneScreen()">
+
+            <!-- GPay / Paytm Reward Trigger Button on Success Screen -->
+            <button id="phoneSuccessRewardBtn" class="btn btn-secondary font-bold" style="margin-top: 0.75rem; width: 100%; border-radius: 999px; display: none;" onclick="app.openScratchCard()">
+              🎁 Scratch Your GPay Reward!
+            </button>
+
+            <button class="btn btn-primary" style="margin-top: 0.75rem; width: 100%; border-radius: 999px; font-weight: 700;" onclick="app.resetPhoneScreen()">
               Done
             </button>
           </div>

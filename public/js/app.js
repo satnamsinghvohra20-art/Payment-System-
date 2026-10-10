@@ -32,7 +32,13 @@ class SplitPayApp {
       currentCalculation: null,
       activeSplitIndex: 0,
       scannerActive: false,
-      autoAdvance: true
+      autoAdvance: true,
+      phoneBrand: 'gpay', // 'gpay' | 'paytm' | 'standard'
+      selectedInstrument: 'bank', // 'bank' | 'wallet' | 'postpaid' | 'upilite'
+      walletBalance: 2450.00,
+      postpaidBalance: 10000.00,
+      scratchReward: 48,
+      scratchCardRevealed: false
     };
 
     this.qrScanner = null;
@@ -107,6 +113,7 @@ class SplitPayApp {
     this.fetchMerchantConfig();
     this.renderAddedItems();
     this.calculateAndRender();
+    this.setPhoneBrand('gpay');
   }
 
   cacheDom() {
@@ -217,6 +224,38 @@ class SplitPayApp {
       phonePaidSuccessAmount: document.getElementById('phonePaidSuccessAmount'),
       phoneSuccessUtrText: document.getElementById('phoneSuccessUtrText'),
       phoneSuccessSplits: document.getElementById('phoneSuccessSplits'),
+
+      // Brand Switcher & GPay / Paytm Clones
+      phoneScreenContent: document.getElementById('phoneScreenContent'),
+      phoneTabGpay: document.getElementById('phoneTabGpay'),
+      phoneTabPaytm: document.getElementById('phoneTabPaytm'),
+      phoneTabStandard: document.getElementById('phoneTabStandard'),
+      phoneAppBrandTitle: document.getElementById('phoneAppBrandTitle'),
+      gpayHeaderLogo: document.getElementById('gpayHeaderLogo'),
+      paytmHeaderLogo: document.getElementById('paytmHeaderLogo'),
+      standardHeaderLogo: document.getElementById('standardHeaderLogo'),
+      gpayContactsSection: document.getElementById('gpayContactsSection'),
+      gpayRewardTeaser: document.getElementById('gpayRewardTeaser'),
+      gpayBankPicker: document.getElementById('gpayBankPicker'),
+      gpayBankPickerSub: document.getElementById('gpayBankPickerSub'),
+      paytmPassbookBanner: document.getElementById('paytmPassbookBanner'),
+      paytmWalletBalPreview: document.getElementById('paytmWalletBalPreview'),
+      paytmInstrumentsBox: document.getElementById('paytmInstrumentsBox'),
+      paytmPassbookDrawer: document.getElementById('paytmPassbookDrawer'),
+      passbookTotalBal: document.getElementById('passbookTotalBal'),
+      passbookTxnsList: document.getElementById('passbookTxnsList'),
+      gpayScratchOverlay: document.getElementById('gpayScratchOverlay'),
+      scratchCanvas: document.getElementById('scratchCanvas'),
+      scratchRewardAmount: document.getElementById('scratchRewardAmount'),
+      scratchRewardRef: document.getElementById('scratchRewardRef'),
+      scratchInstructionText: document.getElementById('scratchInstructionText'),
+      scratchDoneBtn: document.getElementById('scratchDoneBtn'),
+      phoneSuccessRewardBtn: document.getElementById('phoneSuccessRewardBtn'),
+      phoneSuccessTitle: document.getElementById('phoneSuccessTitle'),
+      phoneAvatarRing: document.getElementById('phoneAvatarRing'),
+      phoneAvatarLetter: document.getElementById('phoneAvatarLetter'),
+      phoneVerifiedBadge: document.getElementById('phoneVerifiedBadge'),
+      soundboxPersonaSelect: document.getElementById('soundboxPersonaSelect'),
 
       // Gateway Configuration & Pipeline
       gatewayConfigModal: document.getElementById('gatewayConfigModal'),
@@ -1853,6 +1892,11 @@ class SplitPayApp {
       this.dom.phoneMerchantVpa.textContent = this.state.merchant.vpa || 'satnam.store@okhdfcbank';
     }
 
+    if (this.dom.phoneAvatarLetter) {
+      const name = this.state.merchant.name || 'Satnam';
+      this.dom.phoneAvatarLetter.textContent = name.charAt(0).toUpperCase();
+    }
+
     if (this.dom.phoneSplitHint) {
       if (plan.summary.totalSplits > 1) {
         const chunkPart = `₹${plan.summary.chunkAmount.toLocaleString('en-IN')}`;
@@ -1862,11 +1906,395 @@ class SplitPayApp {
         this.dom.phoneSplitHint.textContent = `⚡ Direct Single Settlement`;
       }
     }
+
+    if (this.dom.paytmWalletBalPreview) {
+      this.dom.paytmWalletBalPreview.textContent = `₹${this.state.walletBalance.toLocaleString('en-IN')}.00`;
+    }
+
+    // Update Pay Button text according to chosen instrument
+    this.updatePayButtonText();
+  }
+
+  // ================= GPAY & PAYTM BRAND CONTROLLER =================
+  setPhoneBrand(brand) {
+    this.state.phoneBrand = brand || 'gpay';
+
+    // Update active tab buttons
+    if (this.dom.phoneTabGpay) this.dom.phoneTabGpay.classList.toggle('active', brand === 'gpay');
+    if (this.dom.phoneTabPaytm) this.dom.phoneTabPaytm.classList.toggle('active', brand === 'paytm');
+    if (this.dom.phoneTabStandard) this.dom.phoneTabStandard.classList.toggle('active', brand === 'standard');
+
+    // Update container theme class
+    if (this.dom.phoneScreenContent) {
+      this.dom.phoneScreenContent.className = `phone-screen-content brand-${brand}`;
+    }
+
+    const isGpay = brand === 'gpay';
+    const isPaytm = brand === 'paytm';
+    const isStandard = brand === 'standard';
+
+    // Header logo toggle
+    if (this.dom.gpayHeaderLogo) this.dom.gpayHeaderLogo.style.display = isGpay ? 'inline-block' : 'none';
+    if (this.dom.paytmHeaderLogo) this.dom.paytmHeaderLogo.style.display = isPaytm ? 'inline-block' : 'none';
+    if (this.dom.standardHeaderLogo) this.dom.standardHeaderLogo.style.display = isStandard ? 'inline-block' : 'none';
+
+    // GPay feature visibility
+    if (this.dom.gpayContactsSection) this.dom.gpayContactsSection.style.display = isGpay ? 'block' : 'none';
+    if (this.dom.gpayRewardTeaser) this.dom.gpayRewardTeaser.style.display = isGpay ? 'flex' : 'none';
+    if (this.dom.gpayBankPicker) this.dom.gpayBankPicker.style.display = (isGpay || isStandard) ? 'block' : 'none';
+
+    // Paytm feature visibility
+    if (this.dom.paytmPassbookBanner) this.dom.paytmPassbookBanner.style.display = isPaytm ? 'block' : 'none';
+    if (this.dom.paytmInstrumentsBox) this.dom.paytmInstrumentsBox.style.display = isPaytm ? 'block' : 'none';
+
+    // Verified badge & Soundbox audio persona sync
+    if (isGpay) {
+      if (this.dom.phoneVerifiedBadge) this.dom.phoneVerifiedBadge.textContent = 'Secured by Google Pay & NPCI';
+      this.soundbox.setPersona('gpay_chime');
+      if (this.dom.soundboxPersonaSelect) this.dom.soundboxPersonaSelect.value = 'gpay_chime';
+      this.soundbox.playGpayChime();
+    } else if (isPaytm) {
+      if (this.dom.phoneVerifiedBadge) this.dom.phoneVerifiedBadge.textContent = 'Paytm Payments Bank • Verified';
+      this.soundbox.setPersona('paytm_hindi');
+      if (this.dom.soundboxPersonaSelect) this.dom.soundboxPersonaSelect.value = 'paytm_hindi';
+      this.soundbox.playPaytmChime();
+    } else {
+      if (this.dom.phoneVerifiedBadge) this.dom.phoneVerifiedBadge.textContent = 'SplitPay 1999 • NPCI 2FA Verified';
+      this.soundbox.setPersona('hindi');
+      if (this.dom.soundboxPersonaSelect) this.dom.soundboxPersonaSelect.value = 'hindi';
+      this.soundbox.playChime();
+    }
+
+    this.syncCustomerPhoneScreen();
+  }
+
+  selectQuickContact(name, vpa) {
+    this.state.merchant.name = name;
+    this.state.merchant.vpa = vpa;
+    if (this.dom.merchantNameInput) this.dom.merchantNameInput.value = name;
+    if (this.dom.merchantVpaInput) this.dom.merchantVpaInput.value = vpa;
+
+    // Highlight contact chip
+    const items = document.querySelectorAll('.gpay-contact-item');
+    items.forEach(el => {
+      const match = el.textContent.includes(name.slice(0, 5));
+      el.classList.toggle('active', match);
+    });
+
+    this.soundbox.playBeep();
+    this.calculateAndRender();
+    this.syncCustomerPhoneScreen();
+  }
+
+  onPaymentInstrumentChange(instrument) {
+    this.state.selectedInstrument = instrument;
+    const items = document.querySelectorAll('.paytm-radio-item');
+    items.forEach(el => el.classList.remove('selected'));
+    const chosen = document.getElementById(`paytmOpt${instrument.charAt(0).toUpperCase() + instrument.slice(1)}`);
+    if (chosen) chosen.classList.add('selected');
+
+    this.soundbox.playBeep();
+    this.updatePayButtonText();
+  }
+
+  updatePayButtonText() {
+    if (!this.dom.phonePayNowBtn) return;
+    const amt = this.state.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+    if (this.state.phoneBrand === 'paytm') {
+      switch (this.state.selectedInstrument) {
+        case 'wallet':
+          this.dom.phonePayNowBtn.innerHTML = `⚡ Pay ₹${amt} from Paytm Wallet`;
+          break;
+        case 'postpaid':
+          this.dom.phonePayNowBtn.innerHTML = `💳 Pay ₹${amt} via Paytm Postpaid (BNPL)`;
+          break;
+        case 'upilite':
+          this.dom.phonePayNowBtn.innerHTML = `⚡ 1-Tap Pay ₹${amt} (Paytm UPI Lite)`;
+          break;
+        case 'bank':
+        default:
+          this.dom.phonePayNowBtn.innerHTML = `🔐 Pay ₹${amt} with UPI PIN`;
+          break;
+      }
+    } else {
+      this.dom.phonePayNowBtn.innerHTML = `🔐 Pay ₹${amt} with UPI PIN`;
+    }
   }
 
   handlePhonePayClick() {
     this.soundbox.playBeep();
+
+    // If using Paytm Wallet, Postpaid, or UPI Lite with instant pay
+    if (this.state.phoneBrand === 'paytm' && this.state.selectedInstrument !== 'bank') {
+      const inst = this.state.selectedInstrument;
+      const amt = this.state.totalAmount;
+
+      // Instant 1-tap deduction without 6-digit MPIN
+      if (inst === 'wallet') {
+        this.state.walletBalance = Math.max(0, this.state.walletBalance - amt);
+      } else if (inst === 'postpaid') {
+        this.state.postpaidBalance = Math.max(0, this.state.postpaidBalance - amt);
+      }
+
+      if (this.dom.paytmWalletBalPreview) {
+        this.dom.paytmWalletBalPreview.textContent = `₹${this.state.walletBalance.toLocaleString('en-IN')}.00`;
+      }
+
+      // Execute auto-split division & soundbox
+      if (this.state.smartPlan) {
+        this.splitEngine.executeSmartSplit(this.state.smartPlan);
+        this.soundbox.announceSmartSplit(this.state.smartPlan.splits, this.state.smartPlan.totalAmount);
+        this.showPhoneSuccessScreen(this.state.smartPlan);
+        this.triggerConfetti();
+        this.renderSmartView();
+        this.updateProgress();
+      }
+      return;
+    }
+
+    // Default Bank Account UPI requires PIN
     this.openPinModal();
+  }
+
+  // ================= PAYTM PASSBOOK LEDGER DRAWER =================
+  openPaytmPassbook() {
+    if (this.dom.paytmPassbookDrawer) {
+      this.dom.paytmPassbookDrawer.style.display = 'flex';
+      this.renderPassbookLedger('all');
+      this.soundbox.playBeep();
+    }
+  }
+
+  closePaytmPassbook() {
+    if (this.dom.paytmPassbookDrawer) {
+      this.dom.paytmPassbookDrawer.style.display = 'none';
+    }
+  }
+
+  filterPassbook(filter) {
+    if (!this.dom.paytmPassbookDrawer) return;
+    const tabs = this.dom.paytmPassbookDrawer.querySelectorAll('.passbook-tab-btn');
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.filter === filter));
+    this.renderPassbookLedger(filter);
+  }
+
+  renderPassbookLedger(filter = 'all') {
+    if (!this.dom.passbookTxnsList) return;
+
+    if (this.dom.passbookTotalBal) {
+      const total = this.state.walletBalance + this.state.postpaidBalance + 58400;
+      this.dom.passbookTotalBal.textContent = `₹${total.toLocaleString('en-IN')}.00`;
+    }
+
+    const txns = [
+      {
+        title: 'Paid at Satnam Enterprise',
+        meta: 'UPI Ref 261010184918 • HDFC Bank',
+        amount: -3800,
+        type: 'paid',
+        time: 'Today, ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+      },
+      {
+        title: 'Google Pay Cashback Reward',
+        meta: 'Reward Bonus • Auto-Credited',
+        amount: +48,
+        type: 'received',
+        time: 'Today, ' + new Date(Date.now() - 10 * 60000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+      },
+      {
+        title: 'Added to Paytm Wallet',
+        meta: 'UPI Topup • Net Banking',
+        amount: +2000,
+        type: 'received',
+        time: 'Yesterday, 04:30 PM'
+      },
+      {
+        title: 'Paid at Blue Tokai Coffee',
+        meta: 'Paytm Wallet • TXN_84920',
+        amount: -340,
+        type: 'paid',
+        time: 'Yesterday, 11:15 AM'
+      },
+      {
+        title: 'Paytm Postpaid Credit Line Activated',
+        meta: 'Aditya Birla Finance Limit',
+        amount: +10000,
+        type: 'received',
+        time: '01 Oct 2026'
+      }
+    ];
+
+    if (this.state.reconciliationLog && this.state.reconciliationLog.length > 0) {
+      this.state.reconciliationLog.slice(0, 4).forEach(r => {
+        txns.unshift({
+          title: `Auto-Split to ${r.accountName || 'Merchant'}`,
+          meta: `UTR: ${r.utr} • ${r.vpa}`,
+          amount: -r.amount,
+          type: 'paid',
+          time: r.timestamp || 'Today'
+        });
+      });
+    }
+
+    const filtered = txns.filter(t => {
+      if (filter === 'all') return true;
+      return t.type === filter;
+    });
+
+    this.dom.passbookTxnsList.innerHTML = filtered.map(t => `
+      <div class="passbook-txn-card">
+        <div class="passbook-txn-left">
+          <div class="passbook-txn-title">${t.title}</div>
+          <div class="passbook-txn-meta">${t.meta} • ${t.time}</div>
+        </div>
+        <div class="passbook-txn-amount ${t.amount > 0 ? 'credit' : 'debit'}">
+          ${t.amount > 0 ? '+' : '-'}₹${Math.abs(t.amount).toLocaleString('en-IN')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ================= GPAY INTERACTIVE SCRATCH CARD ENGINE =================
+  openScratchCard() {
+    if (this.dom.gpayScratchOverlay) {
+      this.dom.gpayScratchOverlay.style.display = 'flex';
+      const rewardVal = Math.floor(25 + Math.random() * 50);
+      this.initScratchCard(rewardVal);
+    }
+  }
+
+  closeScratchCard() {
+    if (this.dom.gpayScratchOverlay) {
+      this.dom.gpayScratchOverlay.style.display = 'none';
+    }
+    this.resetPhoneScreen();
+  }
+
+  initScratchCard(rewardAmount) {
+    const canvas = this.dom.scratchCanvas;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    this.state.scratchReward = rewardAmount || 48;
+    this.state.scratchCardRevealed = false;
+
+    if (this.dom.scratchRewardAmount) {
+      this.dom.scratchRewardAmount.textContent = `₹${this.state.scratchReward}`;
+    }
+    if (this.dom.scratchRewardRef) {
+      this.dom.scratchRewardRef.textContent = `Ref: GPAY_RW_${Math.floor(10000 + Math.random() * 90000)}`;
+    }
+    if (this.dom.scratchDoneBtn) {
+      this.dom.scratchDoneBtn.style.display = 'none';
+    }
+    if (this.dom.scratchInstructionText) {
+      this.dom.scratchInstructionText.innerHTML = '👆 <strong>Scratch foil with mouse or finger</strong> to reveal your cashback reward!';
+    }
+
+    // Paint shimmering silver foil
+    ctx.globalCompositeOperation = 'source-over';
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    grad.addColorStop(0, '#94a3b8');
+    grad.addColorStop(0.25, '#e2e8f0');
+    grad.addColorStop(0.5, '#cbd5e1');
+    grad.addColorStop(0.75, '#e2e8f0');
+    grad.addColorStop(1, '#64748b');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Decorative GPay foil branding
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+    ctx.font = 'bold 16px Outfit, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎁 Google Pay Rewards', width / 2, height / 2 - 10);
+    ctx.font = '12px Outfit, sans-serif';
+    ctx.fillText('Scratch here to reveal', width / 2, height / 2 + 15);
+
+    let isDrawing = false;
+    let scratchedPixels = 0;
+    const totalPixels = width * height;
+
+    const scratch = (x, y) => {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, 22, 0, Math.PI * 2, false);
+      ctx.fill();
+      scratchedPixels += Math.PI * 22 * 22 * 0.4;
+
+      if (!this.state.scratchCardRevealed && scratchedPixels > totalPixels * 0.32) {
+        this.revealScratchReward();
+      }
+    };
+
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * (width / rect.width),
+        y: (clientY - rect.top) * (height / rect.height)
+      };
+    };
+
+    canvas.onpointerdown = (e) => {
+      isDrawing = true;
+      const p = getPos(e);
+      scratch(p.x, p.y);
+    };
+
+    canvas.onpointermove = (e) => {
+      if (!isDrawing) return;
+      const p = getPos(e);
+      scratch(p.x, p.y);
+    };
+
+    canvas.onpointerup = () => { isDrawing = false; };
+    canvas.onpointerleave = () => { isDrawing = false; };
+  }
+
+  revealScratchReward() {
+    this.state.scratchCardRevealed = true;
+    const canvas = this.dom.scratchCanvas;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    this.soundbox.playGpayChime();
+    this.triggerConfetti();
+
+    if (this.dom.scratchInstructionText) {
+      this.dom.scratchInstructionText.innerHTML = `🎉 <strong>Congratulations!</strong> ₹${this.state.scratchReward} won & credited to your A/C!`;
+    }
+    if (this.dom.scratchDoneBtn) {
+      this.dom.scratchDoneBtn.style.display = 'block';
+      this.dom.scratchDoneBtn.textContent = `Claim ₹${this.state.scratchReward} & Add to Passbook`;
+    }
+
+    this.state.walletBalance += this.state.scratchReward;
+    if (this.dom.paytmWalletBalPreview) {
+      this.dom.paytmWalletBalPreview.textContent = `₹${this.state.walletBalance.toLocaleString('en-IN')}.00`;
+    }
+
+    this.state.reconciliationLog.unshift({
+      txRef: `GPAY_RW_${Date.now().toString().slice(-6)}`,
+      orderId: 'REWARD_CASHBACK',
+      splitPart: 'Google Pay Cashback',
+      accountName: 'Google Pay Rewards A/C',
+      bankCode: 'GPAY',
+      vpa: 'rewards@gpay',
+      amount: this.state.scratchReward,
+      utr: `GP${Date.now().toString().slice(-8)}`,
+      timestamp: new Date().toLocaleTimeString('en-IN')
+    });
+  }
+
+  setSoundboxPersona(val) {
+    this.soundbox.setPersona(val);
+    this.soundbox.playChime();
   }
 
   showPhoneSuccessScreen(plan) {
@@ -1897,6 +2325,29 @@ class SplitPayApp {
       }
 
       this.dom.phoneSuccessSplits.innerHTML = html;
+    }
+
+    // GPay or Paytm post-payment experience
+    if (this.dom.phoneSuccessRewardBtn) {
+      if (this.state.phoneBrand === 'gpay') {
+        this.dom.phoneSuccessRewardBtn.style.display = 'block';
+        this.dom.phoneSuccessRewardBtn.textContent = '🎁 Scratch Your GPay Cashback Reward!';
+        this.dom.phoneSuccessRewardBtn.onclick = () => {
+          this.openScratchCard();
+        };
+        setTimeout(() => {
+          this.openScratchCard();
+        }, 1200);
+      } else if (this.state.phoneBrand === 'paytm') {
+        this.dom.phoneSuccessRewardBtn.style.display = 'block';
+        this.dom.phoneSuccessRewardBtn.textContent = '📖 View in Paytm Passbook';
+        this.dom.phoneSuccessRewardBtn.onclick = () => {
+          this.resetPhoneScreen();
+          this.openPaytmPassbook();
+        };
+      } else {
+        this.dom.phoneSuccessRewardBtn.style.display = 'none';
+      }
     }
 
     this.dom.phoneSuccessOverlay.style.display = 'flex';

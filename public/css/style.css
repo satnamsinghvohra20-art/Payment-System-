@@ -2403,5 +2403,544 @@ body {
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
+/* =========================================================================
+   PHONE BRAND SWITCHER & CLONE SUITE (GPAY + PAYTM)
+   ========================================================================= */
+
+.phone-brand-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 3px;
+}
+
+.phone-brand-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.4rem 0.2rem;
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.phone-brand-tab.active {
+  background: #1e293b;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.phone-brand-tab.active#phoneTabGpay {
+  background: #1e3a8a;
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+}
+
+.phone-brand-tab.active#phoneTabPaytm {
+  background: #002970;
+  color: #00b9f5;
+  border: 1px solid rgba(0, 185, 245, 0.4);
+}
+
+.gpay-tab-dot {
+  color: #4285f4;
+  font-size: 0.6rem;
+}
+
+.paytm-tab-icon {
+  background: #00b9f5;
+  color: #002970;
+  font-weight: 900;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+}
+
+/* GPay Brand Styles */
+.gpay-header-badge {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.g-blue { color: #4285f4; }
+.g-red { color: #ea4335; }
+.g-yellow { color: #fbbc05; }
+.g-green { color: #34a853; }
+
+/* Paytm Brand Styles */
+.paytm-header-badge {
+  color: #00b9f5;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.paytm-header-badge strong {
+  color: #fff;
+}
+
+.standard-header-badge {
+  color: var(--cyan);
+  font-weight: 800;
+}
+
+/* GPAY CLONE: Quick Pay Contact Avatar Ring */
+.gpay-contacts-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.65rem 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.gpay-section-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.gpay-contacts-scroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+}
+
+.gpay-contacts-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.gpay-contact-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  min-width: 54px;
+  transition: transform 0.15s ease;
+}
+
+.gpay-contact-item:hover {
+  transform: translateY(-2px);
+}
+
+.gpay-contact-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fff;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.gpay-avatar-store {
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  border: 2px solid #38bdf8;
+}
+
+.gpay-avatar-user1 {
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+}
+
+.gpay-avatar-user2 {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.gpay-avatar-user3 {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+}
+
+.gpay-verified-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #10b981;
+  color: #fff;
+  font-size: 0.55rem;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0b0f19;
+}
+
+.gpay-contact-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+/* GPAY CLONE: Reward Scratch Card Teaser Banner */
+.gpay-reward-teaser {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(245, 158, 11, 0.15));
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.gpay-reward-teaser span:first-child {
+  font-size: 1.25rem;
+}
+
+/* PAYTM CLONE: Passbook Ledger Banner */
+.paytm-passbook-banner {
+  background: linear-gradient(135deg, rgba(0, 41, 112, 0.4), rgba(0, 185, 245, 0.15));
+  border: 1px solid rgba(0, 185, 245, 0.35);
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.paytm-passbook-btn {
+  background: #00b9f5;
+  color: #002970;
+  border: none;
+  font-weight: 800;
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 185, 245, 0.4);
+  transition: all 0.15s ease;
+}
+
+.paytm-passbook-btn:hover {
+  transform: scale(1.04);
+}
+
+/* PAYTM CLONE: Payment Instruments Selector */
+.paytm-instruments-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.paytm-radio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.paytm-radio-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.paytm-radio-item:hover,
+.paytm-radio-item.selected {
+  border-color: #00b9f5;
+  background: rgba(0, 185, 245, 0.08);
+}
+
+.paytm-radio-item input[type="radio"] {
+  accent-color: #00b9f5;
+  width: 14px;
+  height: 14px;
+}
+
+.paytm-instrument-info {
+  flex: 1;
+}
+
+.paytm-tag-fast {
+  font-size: 0.6rem;
+  font-weight: 800;
+  background: #10b981;
+  color: #fff;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.paytm-tag-bnpl {
+  font-size: 0.6rem;
+  font-weight: 800;
+  background: #6366f1;
+  color: #fff;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.paytm-tag-lite {
+  font-size: 0.6rem;
+  font-weight: 800;
+  background: #f59e0b;
+  color: #000;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+/* PAYTM CLONE: Slide-Up Passbook Ledger Drawer */
+.paytm-passbook-drawer {
+  position: absolute;
+  inset: 0;
+  background: #050b18;
+  border-radius: 36px;
+  padding: 1.25rem 1rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.passbook-drawer-header {
+  border-bottom: 1px solid rgba(0, 185, 245, 0.2);
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.passbook-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.passbook-balance-overview {
+  margin-bottom: 0.85rem;
+}
+
+.passbook-bal-card {
+  background: linear-gradient(135deg, #002970, #00173d);
+  border: 1px solid rgba(0, 185, 245, 0.3);
+  border-radius: 12px;
+  padding: 0.85rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 41, 112, 0.5);
+}
+
+.passbook-total-bal {
+  font-size: 1.7rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: #00b9f5;
+  margin: 0.2rem 0;
+}
+
+.passbook-bal-breakdown {
+  color: #cbd5e1;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.4rem;
+}
+
+.passbook-filter-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+  margin-bottom: 0.75rem;
+}
+
+.passbook-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.35rem 0.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.passbook-tab-btn.active {
+  background: #002970;
+  color: #00b9f5;
+  border: 1px solid rgba(0, 185, 245, 0.3);
+}
+
+.passbook-txns-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.passbook-txn-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.passbook-txn-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.passbook-txn-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.passbook-txn-meta {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.passbook-txn-amount {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: right;
+}
+
+.passbook-txn-amount.credit {
+  color: #10b981;
+}
+
+.passbook-txn-amount.debit {
+  color: #ef4444;
+}
+
+/* GPAY CLONE: Interactive Scratch Card Reward Modal */
+.gpay-scratch-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 30;
+}
+
+.gpay-scratch-box {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 20px;
+  padding: 1.15rem;
+  width: 100%;
+  max-width: 290px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(37, 99, 235, 0.25);
+}
+
+.gpay-scratch-header {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gpay-scratch-canvas-container {
+  position: relative;
+  width: 270px;
+  height: 200px;
+  margin: 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.gpay-scratch-revealed-content {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1e3a8a, #065f46);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+}
+
+.scratch-gift-icon {
+  font-size: 2.2rem;
+  animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-6px); }
+}
+
+.scratch-reward-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #a7f3d0;
+  margin-top: 0.25rem;
+}
+
+.scratch-reward-amount {
+  font-size: 2.2rem;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  color: #34d399;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 15px rgba(52, 211, 153, 0.6);
+}
+
+.scratch-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 270px;
+  height: 200px;
+  cursor: crosshair;
+  touch-action: none;
+  z-index: 5;
+}
+
+.scratch-instruction {
+  margin-top: 0.65rem;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+
 
 

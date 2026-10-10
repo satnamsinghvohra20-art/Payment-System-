@@ -5,7 +5,7 @@ try {
   execSync('git add -A', { stdio: 'inherit' });
   
   console.log('Committing changes...');
-  execSync('git commit -m "feat: complete enterprise commercial pipeline, database layer, gateway adapters, and saas pricing suite"', { stdio: 'inherit' });
+  execSync('git commit -m "feat: add GPay and Paytm clone suite with interactive scratch cards, passbook ledger, and soundbox voice personas"', { stdio: 'inherit' });
   
   console.log('Pushing to GitHub...');
   const out = execSync('git push origin main', { encoding: 'utf8' });
